@@ -61,24 +61,39 @@ export default function ChatDashboardPage() {
   const handleSelectUserForChat = async (targetProfile: Profile) => {
     try {
       const convId = await createDirectConversation(targetProfile.id);
-      const matched = conversations.find((c) => c.id === convId);
-      if (matched) {
-        setActiveConversation(matched);
-      }
-    } catch (err) {
-      console.error('Could not create direct conversation:', err);
+      setActiveConversation((current) => {
+        if (current?.id === convId) return current;
+        const matched = conversations.find((c) => c.id === convId);
+        return matched || current;
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : (err as { message?: string })?.message ||
+            (err as { details?: string })?.details ||
+            JSON.stringify(err);
+      console.error('Could not create direct conversation:', errorMsg, err);
+      throw err;
     }
   };
 
   const handleCreateGroup = async (name: string, memberIds: string[]) => {
     try {
       const groupId = await createGroupConversation(name, memberIds);
-      const matched = conversations.find((c) => c.id === groupId);
-      if (matched) {
-        setActiveConversation(matched);
-      }
-    } catch (err) {
-      console.error('Could not create group:', err);
+      setActiveConversation((current) => {
+        if (current?.id === groupId) return current;
+        const matched = conversations.find((c) => c.id === groupId);
+        return matched || current;
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : (err as { message?: string })?.message ||
+            (err as { details?: string })?.details ||
+            JSON.stringify(err);
+      console.error('Could not create group:', errorMsg, err);
       throw err;
     }
   };

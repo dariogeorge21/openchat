@@ -25,13 +25,23 @@ export function NewChatModal({
 }: NewChatModalProps) {
   const { query, setQuery, results, loading } = useUserSearch();
   const [startingChatWith, setStartingChatWith] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!open) {
+      setError(null);
+    }
+  }, [open]);
 
   const handleSelect = async (profile: Profile) => {
     try {
+      setError(null);
       setStartingChatWith(profile.id);
       await onSelectUser(profile);
       onOpenChange(false);
-    } catch (err) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to initiate conversation';
+      setError(msg);
       console.error('Failed to initiate conversation:', err);
     } finally {
       setStartingChatWith(null);
@@ -51,13 +61,22 @@ export function NewChatModal({
           </DialogDescription>
         </DialogHeader>
 
+        {error && (
+          <div className="mt-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs">
+            {error}
+          </div>
+        )}
+
         {/* Search input */}
         <div className="relative mt-2">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8696a0]" />
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="Search by name or username..."
             className="w-full h-10 pl-10 pr-4 text-xs rounded-xl bg-[#f0f2f5] dark:bg-[#111b21] border border-transparent focus:border-[#00A884] focus:outline-hidden text-[#111b21] dark:text-[#e9edef] placeholder-[#8696a0] transition-colors"
             autoFocus

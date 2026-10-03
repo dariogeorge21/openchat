@@ -217,7 +217,7 @@ CREATE OR REPLACE FUNCTION public.is_conversation_member(p_conv_id UUID)
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.conversation_members
-    WHERE conversation_id = p_conv_id AND user_id = auth.uid()
+    WHERE conversation_id = p_conv_id AND user_id = (SELECT auth.uid())
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
@@ -226,7 +226,16 @@ CREATE OR REPLACE FUNCTION public.is_conversation_admin(p_conv_id UUID)
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.conversation_members
-    WHERE conversation_id = p_conv_id AND user_id = auth.uid() AND role = 'admin'
+    WHERE conversation_id = p_conv_id AND user_id = (SELECT auth.uid()) AND role = 'admin'
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- Helper function to check if current user is creator of a conversation
+CREATE OR REPLACE FUNCTION public.is_conversation_creator(p_conv_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.conversations
+    WHERE id = p_conv_id AND created_by = (SELECT auth.uid())
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
@@ -252,8 +261,8 @@ CREATE POLICY "Profiles are viewable by authenticated users"
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
   TO authenticated
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  USING ((SELECT auth.uid()) = id)
+  WITH CHECK ((SELECT auth.uid()) = id);
 
 -- USER KEYS POLICIES
 -- Authenticated users can view public keys (required to establish ECDH shared secrets)
@@ -266,26 +275,29 @@ CREATE POLICY "Public keys are viewable by authenticated users"
 CREATE POLICY "Users can insert their own public key"
   ON public.user_keys FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can update their own public key"
   ON public.user_keys FOR UPDATE
   TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- CONVERSATIONS POLICIES
--- Users can see conversations they belong to
+-- Users can see conversations they belong to or created
 CREATE POLICY "Users can view their conversations"
   ON public.conversations FOR SELECT
   TO authenticated
-  USING (public.is_conversation_member(id));
+  USING (
+    public.is_conversation_member(id)
+    OR created_by = (SELECT auth.uid())
+  );
 
 -- Any authenticated user can create a conversation
 CREATE POLICY "Users can create conversations"
   ON public.conversations FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() = created_by);
+  WITH CHECK ((SELECT auth.uid()) = created_by);
 
 -- Conversation admins or members can update conversation details (group name/avatar/key version)
 CREATE POLICY "Admins or members can update conversation"
@@ -307,14 +319,11 @@ CREATE POLICY "Users can insert members"
   TO authenticated
   WITH CHECK (
     -- User adding themselves upon conversation creation OR
-    auth.uid() = user_id OR
+    (SELECT auth.uid()) = user_id OR
     -- Group admin adding a member OR
     public.is_conversation_admin(conversation_id) OR
-    -- Direct conversation creator adding the other participant
-    EXISTS (
-      SELECT 1 FROM public.conversations
-      WHERE id = conversation_id AND created_by = auth.uid()
-    )
+    -- Conversation creator adding participants
+    public.is_conversation_creator(conversation_id)
   );
 
 -- Group admins can update roles or users can update their own last_read_at
@@ -398,3 +407,54 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.message_receipts;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.conversation_members;
+
+-- ------------------------------------------------------------------------------
+-- 10. RPC FUNCTIONS (Stored Procedures)
+-- ------------------------------------------------------------------------------
+
+-- Atomic Direct Conversation Creator
+-- Prevents duplicate 1:1 conversations and handles conversation + membership insertion in one transaction
+CREATE OR REPLACE FUNCTION public.create_or_get_direct_conversation(p_peer_id UUID)
+RETURNS UUID AS $$
+DECLARE
+  v_conv_id UUID;
+  v_user_id UUID := auth.uid();
+BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF v_user_id = p_peer_id THEN
+    RAISE EXCEPTION 'Cannot start conversation with yourself';
+  END IF;
+
+  -- 1. Check if a direct conversation already exists between both users
+  SELECT cm1.conversation_id INTO v_conv_id
+  FROM public.conversation_members cm1
+  JOIN public.conversation_members cm2 ON cm1.conversation_id = cm2.conversation_id
+  JOIN public.conversations c ON c.id = cm1.conversation_id
+  WHERE cm1.user_id = v_user_id
+    AND cm2.user_id = p_peer_id
+    AND c.type = 'direct'
+  LIMIT 1;
+
+  IF v_conv_id IS NOT NULL THEN
+    RETURN v_conv_id;
+  END IF;
+
+  -- 2. Create new direct conversation
+  INSERT INTO public.conversations (type, created_by, current_key_version)
+  VALUES ('direct', v_user_id, 1)
+  RETURNING id INTO v_conv_id;
+
+  -- 3. Add creator (admin) and peer (member)
+  INSERT INTO public.conversation_members (conversation_id, user_id, role)
+  VALUES
+    (v_conv_id, v_user_id, 'admin'),
+    (v_conv_id, p_peer_id, 'member');
+
+  RETURN v_conv_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.create_or_get_direct_conversation(UUID) TO authenticated;

@@ -122,7 +122,7 @@ export function useConversations() {
             createdAt: lastMsg.created_at,
           };
         }
-      } catch (err) {
+      } catch {
         return {
           id: lastMsg.id,
           conversationId: lastMsg.conversation_id,
@@ -140,11 +140,11 @@ export function useConversations() {
   );
 
   // Fetch all conversations for current user
-  const fetchConversations = useCallback(async () => {
+  const fetchConversations = useCallback(async (): Promise<UIConversation[]> => {
     if (!user) {
       setConversations([]);
       setLoading(false);
-      return;
+      return [];
     }
 
     try {
@@ -157,7 +157,7 @@ export function useConversations() {
       if (memberErr || !memberRows || memberRows.length === 0) {
         setConversations([]);
         setLoading(false);
-        return;
+        return [];
       }
 
       const convIds = memberRows.map((m) => m.conversation_id);
@@ -172,7 +172,7 @@ export function useConversations() {
       if (convErr || !convData) {
         setConversations([]);
         setLoading(false);
-        return;
+        return [];
       }
 
       // 3. For each conversation, fetch all members with their profiles
@@ -243,8 +243,11 @@ export function useConversations() {
         const updated = processed.find((p) => p.id === current.id);
         return updated || current;
       });
+
+      return processed;
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -291,7 +294,26 @@ export function useConversations() {
       if (!user) throw new Error('Not authenticated');
       if (targetUserId === user.id) throw new Error('Cannot start conversation with yourself');
 
-      // Check if conversation already exists between both users
+      // 1. Try atomic PostgreSQL RPC if deployed
+      try {
+        const { data: rpcConvId, error: rpcErr } = await supabase.rpc(
+          'create_or_get_direct_conversation',
+          { p_peer_id: targetUserId }
+        );
+
+        if (!rpcErr && rpcConvId) {
+          const freshList = await fetchConversations();
+          const targetConv = freshList.find((c) => c.id === rpcConvId);
+          if (targetConv) {
+            setActiveConversation(targetConv);
+          }
+          return rpcConvId;
+        }
+      } catch (e) {
+        console.warn('RPC create_or_get_direct_conversation unavailable, using client fallback:', e);
+      }
+
+      // 2. Client fallback: Check if conversation already exists between both users
       const { data: myMemberships } = await supabase
         .from('conversation_members')
         .select('conversation_id')
@@ -310,36 +332,64 @@ export function useConversations() {
         );
 
         if (existingDirect) {
-          await fetchConversations();
+          const freshList = await fetchConversations();
+          const targetConv = freshList.find((c) => c.id === existingDirect.conversation_id);
+          if (targetConv) {
+            setActiveConversation(targetConv);
+          }
           return existingDirect.conversation_id;
         }
       }
 
-      // Create new conversation
-      const { data: newConv, error: convErr } = await supabase
+      // 3. Client fallback: Create new conversation record with pre-generated UUID
+      // Avoids .select().single() which fails under restrictive SELECT RLS before membership is inserted
+      const newConvId = crypto.randomUUID();
+
+      const { error: convErr } = await supabase
         .from('conversations')
         .insert({
+          id: newConvId,
           type: 'direct',
           created_by: user.id,
           current_key_version: 1,
-        })
-        .select()
-        .single();
+        });
 
-      if (convErr || !newConv) throw convErr || new Error('Failed to create conversation');
+      if (convErr) {
+        throw new Error(convErr.message || convErr.details || 'Failed to create conversation');
+      }
 
-      // Insert both participants
-      const { error: memberErr } = await supabase
+      // 4. Insert creator FIRST as admin (guaranteed to pass (select auth.uid()) = user_id policy)
+      const { error: creatorMemberErr } = await supabase
         .from('conversation_members')
-        .insert([
-          { conversation_id: newConv.id, user_id: user.id, role: 'admin' },
-          { conversation_id: newConv.id, user_id: targetUserId, role: 'member' },
-        ]);
+        .insert({
+          conversation_id: newConvId,
+          user_id: user.id,
+          role: 'admin',
+        });
 
-      if (memberErr) throw memberErr;
+      if (creatorMemberErr) {
+        throw new Error(creatorMemberErr.message || creatorMemberErr.details || 'Failed to initialize conversation admin');
+      }
 
-      await fetchConversations();
-      return newConv.id;
+      // 5. Insert peer participant (creator is now admin, passing is_conversation_admin check)
+      const { error: peerMemberErr } = await supabase
+        .from('conversation_members')
+        .insert({
+          conversation_id: newConvId,
+          user_id: targetUserId,
+          role: 'member',
+        });
+
+      if (peerMemberErr) {
+        throw new Error(peerMemberErr.message || peerMemberErr.details || 'Failed to add participant to conversation');
+      }
+
+      const freshList = await fetchConversations();
+      const targetConv = freshList.find((c) => c.id === newConvId);
+      if (targetConv) {
+        setActiveConversation(targetConv);
+      }
+      return newConvId;
     },
     [user, supabase, fetchConversations]
   );
@@ -354,39 +404,60 @@ export function useConversations() {
       if (!user || !keyPair) throw new Error('Not authenticated or crypto not initialized');
       if (!name.trim()) throw new Error('Group name cannot be empty');
 
-      // 1. Create conversation record
-      const { data: newGroup, error: groupErr } = await supabase
+      // 1. Create conversation record with pre-generated UUID
+      const newGroupId = crypto.randomUUID();
+
+      const { error: groupErr } = await supabase
         .from('conversations')
         .insert({
+          id: newGroupId,
           type: 'group',
           name: name.trim(),
           avatar_url: avatarUrl || null,
           created_by: user.id,
           current_key_version: 1,
-        })
-        .select()
-        .single();
+        });
 
-      if (groupErr || !newGroup) throw groupErr || new Error('Failed to create group');
+      if (groupErr) {
+        throw new Error(groupErr.message || groupErr.details || 'Failed to create group');
+      }
 
-      // 2. Add members to conversation_members
-      const allMembers = Array.from(new Set([user.id, ...memberUserIds]));
-      const memberRecords = allMembers.map((userId) => ({
-        conversation_id: newGroup.id,
-        user_id: userId,
-        role: userId === user.id ? ('admin' as const) : ('member' as const),
-      }));
-
-      const { error: membersErr } = await supabase
+      // 2. Add creator first as admin (guaranteed to pass (select auth.uid()) = user_id)
+      const { error: adminErr } = await supabase
         .from('conversation_members')
-        .insert(memberRecords);
+        .insert({
+          conversation_id: newGroupId,
+          user_id: user.id,
+          role: 'admin',
+        });
 
-      if (membersErr) throw membersErr;
+      if (adminErr) {
+        throw new Error(adminErr.message || adminErr.details || 'Failed to set group creator');
+      }
 
-      // 3. Generate symmetric AES-256 group key GK_1
+      // 3. Add other members (creator is now admin, passing is_conversation_admin check)
+      const uniqueOtherMembers = Array.from(new Set(memberUserIds)).filter((id) => id !== user.id);
+      if (uniqueOtherMembers.length > 0) {
+        const otherMemberRecords = uniqueOtherMembers.map((userId) => ({
+          conversation_id: newGroupId,
+          user_id: userId,
+          role: 'member' as const,
+        }));
+
+        const { error: membersErr } = await supabase
+          .from('conversation_members')
+          .insert(otherMemberRecords);
+
+        if (membersErr) {
+          throw new Error(membersErr.message || membersErr.details || 'Failed to add group members');
+        }
+      }
+
+      // 4. Generate symmetric AES-256 group key GK_1
       const groupKey = await generateGroupKey();
 
-      // 4. Fetch public keys of all members to wrap group key
+      // 5. Fetch public keys of all members to wrap group key
+      const allMembers = [user.id, ...uniqueOtherMembers];
       const { data: publicKeys } = await supabase
         .from('user_keys')
         .select('user_id, public_key')
@@ -414,7 +485,7 @@ export function useConversations() {
         );
 
         keyRecordsToInsert.push({
-          group_id: newGroup.id,
+          group_id: newGroupId,
           key_version: 1,
           user_id: memberId,
           encrypted_key: wrapped.encryptedKey,
@@ -431,8 +502,12 @@ export function useConversations() {
         if (keyErr) console.error('Failed to distribute group key envelopes:', keyErr);
       }
 
-      await fetchConversations();
-      return newGroup.id;
+      const freshList = await fetchConversations();
+      const targetGroup = freshList.find((c) => c.id === newGroupId);
+      if (targetGroup) {
+        setActiveConversation(targetGroup);
+      }
+      return newGroupId;
     },
     [user, keyPair, supabase, fetchConversations]
   );
