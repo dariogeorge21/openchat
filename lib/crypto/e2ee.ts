@@ -95,7 +95,7 @@ export async function initializeUserKeys(
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (!existingKey) {
+    if (!existingKey || existingKey.key_fingerprint !== stored.fingerprint) {
       await supabase.from('user_keys').upsert({
         user_id: userId,
         public_key: stored.publicKeyJwk,

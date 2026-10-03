@@ -37,6 +37,7 @@ export function useMessages({
   const [error, setError] = useState<string | null>(null);
 
   const activeKeyRef = useRef<CryptoKey | null>(null);
+  const keyErrorRef = useRef<string | null>(null);
   const profilesCacheRef = useRef<Map<string, Profile>>(new Map());
   const channelRef = useRef<RealtimeChannel | null>(null);
 
@@ -67,31 +68,64 @@ export function useMessages({
 
   // Initialize active encryption key (Pairwise ECDH for Direct, or Unwrapped Group Key)
   const resolveActiveKey = useCallback(async (): Promise<CryptoKey | null> => {
-    if (!user || !keyPair || !conversationId) return null;
+    if (!user) return null;
+    if (!keyPair) {
+      keyErrorRef.current = 'Cryptographic keys are still initializing. Please wait a moment.';
+      return null;
+    }
+    if (!conversationId) return null;
 
     try {
       if (conversationType === 'direct') {
-        if (!otherParticipant) return null;
+        let peer = otherParticipant;
+
+        // Fallback: If otherParticipant is not populated yet, look up peer directly from conversation_members
+        if (!peer) {
+          const { data: memberRec } = await supabase
+            .from('conversation_members')
+            .select('user_id')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', user.id)
+            .maybeSingle();
+
+          if (memberRec?.user_id) {
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', memberRec.user_id)
+              .maybeSingle();
+
+            if (prof) peer = prof as Profile;
+          }
+        }
+
+        if (!peer) {
+          keyErrorRef.current = 'Could not identify recipient in this conversation.';
+          return null;
+        }
 
         // Fetch peer public key
-        const { data: peerKeyRecord } = await supabase
+        const { data: peerKeyRecord, error: keyErr } = await supabase
           .from('user_keys')
           .select('public_key')
-          .eq('user_id', otherParticipant.id)
+          .eq('user_id', peer.id)
           .maybeSingle();
 
-        if (!peerKeyRecord?.public_key) {
-          console.warn('Peer has not published public key yet');
+        if (keyErr || !peerKeyRecord?.public_key) {
+          const peerName = peer.display_name || peer.username || 'Recipient';
+          keyErrorRef.current = `${peerName} has not initialized or published their encryption key yet.`;
+          console.warn('Peer has not published public key yet:', keyErr?.message);
           return null;
         }
 
         const pairwiseKey = await derivePairwiseKey(
           keyPair.privateKeyJwk,
           peerKeyRecord.public_key as JsonWebKey,
-          otherParticipant.id
+          peer.id
         );
 
         activeKeyRef.current = pairwiseKey;
+        keyErrorRef.current = null;
         return pairwiseKey;
       } else {
         // Group Conversation: Fetch group member key envelope
@@ -104,6 +138,7 @@ export function useMessages({
           .maybeSingle();
 
         if (!memberKeyRecord) {
+          keyErrorRef.current = 'No group encryption key found for your account in this group.';
           console.warn('No group key envelope found for user in this group');
           return null;
         }
@@ -134,10 +169,12 @@ export function useMessages({
         );
 
         activeKeyRef.current = groupKey;
+        keyErrorRef.current = null;
         return groupKey;
       }
     } catch (err) {
       console.error('Failed to resolve active encryption key:', err);
+      keyErrorRef.current = 'Failed to derive cryptographic shared secret.';
       return null;
     }
   }, [user, keyPair, conversationId, conversationType, otherParticipant, keyVersion, supabase]);
@@ -367,7 +404,9 @@ export function useMessages({
         }
 
         if (!key) {
-          throw new Error('Encryption key could not be established');
+          throw new Error(
+            keyErrorRef.current || 'Encryption key could not be established'
+          );
         }
 
         // 2. Encrypt plaintext locally before sending to Supabase
@@ -404,11 +443,12 @@ export function useMessages({
           );
         }
       } catch (err: unknown) {
-        console.error('Failed to send encrypted message:', err);
+        const errMsg = err instanceof Error ? err.message : 'Failed to send encrypted message';
+        console.error('Failed to send encrypted message:', errMsg, err);
         // Mark message with error in UI
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === tempId ? { ...m, decryptionError: 'Failed to send' } : m
+            m.id === tempId ? { ...m, decryptionError: errMsg } : m
           )
         );
       } finally {

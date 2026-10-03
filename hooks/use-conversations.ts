@@ -175,11 +175,33 @@ export function useConversations() {
         return [];
       }
 
-      // 3. For each conversation, fetch all members with their profiles
-      const { data: allMembersData } = await supabase
+      // 3. Fetch all members and resolve their profiles
+      const { data: memberRowsAll } = await supabase
         .from('conversation_members')
-        .select('*, profile:profiles(*)')
+        .select('*')
         .in('conversation_id', convIds);
+
+      // Fetch profiles for all distinct member user IDs
+      const distinctUserIds = Array.from(
+        new Set((memberRowsAll || []).map((m) => m.user_id))
+      );
+
+      let profilesMap = new Map<string, Profile>();
+      if (distinctUserIds.length > 0) {
+        const { data: profilesList } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', distinctUserIds);
+
+        if (profilesList) {
+          profilesMap = new Map(profilesList.map((p) => [p.id, p as Profile]));
+        }
+      }
+
+      const allMembersData = (memberRowsAll || []).map((m) => ({
+        ...m,
+        profile: profilesMap.get(m.user_id) as Profile,
+      }));
 
       // 4. For each conversation, fetch the last message for preview
       const processed: UIConversation[] = await Promise.all(

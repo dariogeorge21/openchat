@@ -140,7 +140,17 @@ export function MessageList({
                 )}
 
                 {/* Message Body */}
-                {msg.isDecrypted ? (
+                {msg.decryptionError ? (
+                  <div className="space-y-1 py-0.5">
+                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed select-text opacity-70">
+                      {msg.plaintext}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[11px] text-red-500 dark:text-red-400">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{msg.decryptionError}</span>
+                    </div>
+                  </div>
+                ) : msg.isDecrypted ? (
                   <p className="text-sm whitespace-pre-wrap break-words leading-relaxed select-text">
                     {msg.plaintext}
                   </p>
