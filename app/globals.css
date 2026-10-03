@@ -73,10 +73,27 @@ body {
   box-shadow: 0 12px 30px -6px rgba(102, 204, 242, 0.08), 0 4px 12px -2px rgba(23, 23, 23, 0.03);
 }
 
+/* WhatsApp-Web-inspired Chat Wallpapers */
+.chat-wallpaper-light {
+  background-color: #efeae2;
+  background-image: 
+    radial-gradient(rgba(17, 27, 33, 0.04) 1px, transparent 1px),
+    linear-gradient(to right, rgba(17, 27, 33, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px, 48px 48px;
+}
+
+.chat-wallpaper-dark {
+  background-color: #0b141a;
+  background-image: 
+    radial-gradient(rgba(233, 237, 239, 0.03) 1px, transparent 1px),
+    linear-gradient(to right, rgba(233, 237, 239, 0.015) 1px, transparent 1px);
+  background-size: 24px 24px, 48px 48px;
+}
+
 /* Custom scrollbar for sleek look */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -84,12 +101,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E8DEE2;
+  background: rgba(134, 150, 160, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #CFC5CA;
+  background: rgba(134, 150, 160, 0.5);
 }
 
 @keyframes pulse-subtle {
