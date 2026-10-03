@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Josefin_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const josefinSans = Josefin_Sans({
   variable: "--font-josefin",
@@ -32,10 +34,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${josefinSans.variable} ${inter.variable} scroll-smooth`}
     >
-      <body className="min-h-screen bg-[#FFFFFF] text-[#171717] font-sans antialiased selection:bg-[#66CCF2]/20 selection:text-[#171717]">
-        {children}
+      <body className="min-h-screen bg-[#FFFFFF] dark:bg-[#111B21] text-[#171717] dark:text-[#E9EDEF] font-sans antialiased selection:bg-[#66CCF2]/20 selection:text-[#171717]">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

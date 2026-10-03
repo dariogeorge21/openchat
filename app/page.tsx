@@ -12,57 +12,57 @@ import { Footer } from "@/components/landing/footer";
 import { GoogleAuthModal } from "@/components/landing/google-auth-modal";
 import { ShieldCheck, X } from "lucide-react";
 
-export default function LandingPage() {
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{
-    name: string;
-    email: string;
-    avatar: string;
-  } | null>(null);
+import { useAuth } from "@/contexts/auth-context";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-  const handleAuthenticated = (user: {
-    name: string;
-    email: string;
-    avatar: string;
-  }) => {
-    setCurrentUser(user);
+export default function LandingPage() {
+  const { user, profile, isCryptoReady } = useAuth();
+  const router = useRouter();
+  const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || 'User';
+
+  const handleJoinRoom = () => {
+    if (user) {
+      router.push('/chat');
+    } else {
+      router.push('/login');
+    }
   };
 
-  const handleJoinRoom = (roomName: string) => {
-    if (!currentUser) {
-      setAuthModalOpen(true);
+  const handleOpenAuth = () => {
+    if (user) {
+      router.push('/chat');
     } else {
-      const el = document.getElementById("hero");
-      el?.scrollIntoView({ behavior: "smooth" });
+      router.push('/login');
     }
   };
 
   return (
     <div className="min-h-screen bg-white text-[#171717] selection:bg-[#66CCF2]/25 selection:text-[#171717]">
       {/* Top Banner when Authenticated */}
-      {currentUser && (
+      {user && (
         <div className="bg-[#66CCF2]/10 border-b border-[#66CCF2]/30 px-4 py-2.5 text-xs text-[#171717] flex items-center justify-between z-50 sticky top-0">
           <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
             <ShieldCheck className="w-4 h-4 text-[#0983b6]" />
             <span>
-              Signed in as <strong>{currentUser.name}</strong> ({currentUser.email}) via Google Identity. Ready to chat in any channel!
+              Signed in as <strong>{displayName}</strong> ({user.email}). {isCryptoReady ? 'E2EE cryptographic keys ready.' : 'Securing local keys...'}
             </span>
-            <button
-              onClick={() => setCurrentUser(null)}
-              className="ml-auto text-[#737373] hover:text-[#171717] p-1 rounded hover:bg-white"
+            <Link
+              href="/chat"
+              className="ml-auto bg-[#00A884] text-white hover:bg-[#008f6f] px-3 py-1 rounded text-xs font-medium transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
-            </button>
+              Enter Chat Dashboard &rarr;
+            </Link>
           </div>
         </div>
       )}
 
       {/* Navigation */}
-      <Navigation onOpenAuth={() => setAuthModalOpen(true)} />
+      <Navigation onOpenAuth={handleOpenAuth} />
 
       {/* Hero Section */}
       <div id="hero">
-        <Hero onOpenAuth={() => setAuthModalOpen(true)} />
+        <Hero onOpenAuth={handleOpenAuth} />
       </div>
 
       {/* 3-Step Protocol */}
@@ -78,17 +78,10 @@ export default function LandingPage() {
       <FAQSection />
 
       {/* Final Action Banner */}
-      <CTABanner onOpenAuth={() => setAuthModalOpen(true)} />
+      <CTABanner onOpenAuth={handleOpenAuth} />
 
       {/* Footer */}
       <Footer />
-
-      {/* Google Authentication Demonstration Modal */}
-      <GoogleAuthModal
-        open={authModalOpen}
-        onOpenChange={setAuthModalOpen}
-        onAuthenticated={handleAuthenticated}
-      />
     </div>
   );
 }
