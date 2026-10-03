@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { GoogleIcon } from '@/components/icons/google-icon';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { ShieldCheck, Lock, Key, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
@@ -64,9 +65,12 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#8696A0] bg-[#F1E8EB]/50 dark:bg-[#202C33] px-3 py-1.5 rounded-full border border-[#F1E8EB] dark:border-[#222E35]">
-            <Lock className="w-3.5 h-3.5 text-[#00A884]" />
-            <span className="font-medium text-[#171717] dark:text-[#D1D7DB]">E2EE Protected</span>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#8696A0] bg-[#F1E8EB]/50 dark:bg-[#202C33] px-3 py-1.5 rounded-full border border-[#F1E8EB] dark:border-[#222E35]">
+              <Lock className="w-3.5 h-3.5 text-[#00A884]" />
+              <span className="font-medium text-[#171717] dark:text-[#D1D7DB]">E2EE Protected</span>
+            </div>
           </div>
         </div>
       </header>

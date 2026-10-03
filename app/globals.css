@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-blue: #66CCF2;
   --color-brand-blue-hover: #48bfe9;
@@ -27,14 +29,24 @@
   --neutral-border: #F1E8EB;
 }
 
+.dark {
+  --background: #111B21;
+  --foreground: #E9EDEF;
+  --brand-blue: #66CCF2;
+  --brand-orange: #E64E25;
+  --neutral-dark: #E9EDEF;
+  --neutral-muted: #8696A0;
+  --neutral-border: #222D34;
+}
+
 * {
-  border-color: #F1E8EB;
+  border-color: var(--neutral-border);
   box-sizing: border-box;
 }
 
 body {
-  background-color: #FFFFFF;
-  color: #171717;
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans), "Inter", sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;

@@ -6,6 +6,7 @@ import { OpenChatLogo, OpenChatIconMark } from "@/components/brand/open-chat-log
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
 import { Menu, X, ArrowUpRight, ShieldCheck, Zap } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { useAuth } from "@/contexts/auth-context";
 
@@ -55,9 +56,10 @@ export function Navigation({
 
         {/* Right CTA */}
         <div className="hidden sm:flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#FAF9FA] border border-[#F1E8EB] text-xs text-[#737373]">
+          <ThemeToggle />
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#FAF9FA] dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] text-xs text-[#737373] dark:text-[#8696A0]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-mono text-[#171717]">E2EE</span> Mesh Active
+            <span className="font-mono text-[#171717] dark:text-[#E9EDEF]">E2EE</span> Mesh Active
           </div>
 
           {user ? (

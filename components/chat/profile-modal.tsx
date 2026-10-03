@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
+import { useTheme } from 'next-themes';
 import {
   ShieldCheck,
   Key,
@@ -18,6 +19,9 @@ import {
   LogOut,
   User,
   Loader2,
+  Sun,
+  Moon,
+  Laptop,
 } from 'lucide-react';
 
 interface ProfileModalProps {
@@ -27,6 +31,7 @@ interface ProfileModalProps {
 
 export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
   const { user, profile, keyPair, refreshProfile, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [supabase] = useState(() => createClient());
 
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
@@ -142,6 +147,52 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
               {isSaving && <Loader2 className="w-3 h-3 animate-spin mr-1" />}
               {saveSuccess ? 'Saved!' : 'Save Profile'}
             </Button>
+          </div>
+        </div>
+
+        {/* Theme & Appearance */}
+        <div className="p-3.5 rounded-xl bg-[#f0f2f5] dark:bg-[#111b21] border border-[#e9edef] dark:border-[#222d34] space-y-2">
+          <span className="text-xs font-semibold text-[#111b21] dark:text-[#e9edef] flex items-center gap-1.5">
+            <Sun className="w-3.5 h-3.5 text-amber-500" />
+            <span>Theme &amp; Appearance</span>
+          </span>
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setTheme('light')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                theme === 'light'
+                  ? 'bg-white text-[#111b21] border-[#00A884] shadow-xs'
+                  : 'bg-white/60 dark:bg-[#202c33]/60 text-[#667781] dark:text-[#8696a0] border-transparent hover:bg-white dark:hover:bg-[#202c33]'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5 text-amber-500" />
+              <span>Light</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('dark')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                theme === 'dark'
+                  ? 'bg-[#202c33] text-white border-[#00A884] shadow-xs'
+                  : 'bg-white/60 dark:bg-[#202c33]/60 text-[#667781] dark:text-[#8696a0] border-transparent hover:bg-white dark:hover:bg-[#202c33]'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5 text-blue-400" />
+              <span>Dark</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('system')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                theme === 'system'
+                  ? 'bg-white dark:bg-[#202c33] text-[#00A884] border-[#00A884] shadow-xs'
+                  : 'bg-white/60 dark:bg-[#202c33]/60 text-[#667781] dark:text-[#8696a0] border-transparent hover:bg-white dark:hover:bg-[#202c33]'
+              }`}
+            >
+              <Laptop className="w-3.5 h-3.5" />
+              <span>System</span>
+            </button>
           </div>
         </div>
 
