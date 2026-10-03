@@ -22,6 +22,11 @@ export interface DecryptedMessage {
   keyVersion: number;
   status: 'sent' | 'delivered' | 'seen';
   createdAt: string;
+  senderProfile?: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  };
 }
 
 export interface KeyPairResult {
