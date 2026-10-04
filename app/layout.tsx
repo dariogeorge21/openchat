@@ -37,6 +37,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${josefinSans.variable} ${inter.variable} scroll-smooth`}
     >
+      <head>
+        <meta name="apple-mobile-web-app-title" content="OpenChat" />
+      </head>
       <body className="min-h-screen bg-[#FFFFFF] dark:bg-[#111B21] text-[#171717] dark:text-[#E9EDEF] font-sans antialiased selection:bg-[#66CCF2]/20 selection:text-[#171717]">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
