@@ -5,7 +5,7 @@ import Link from "next/link";
 import { OpenChatLogo } from "@/components/brand/open-chat-logo";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { Menu, X, ArrowUpRight, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { Menu, X, ArrowUpRight, ShieldCheck, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -33,10 +33,6 @@ export function Navigation({
               <span className="truncate">
                 Signed in as <strong className="font-semibold">{displayName}</strong>{" "}
                 <span className="text-[#54656F] dark:text-[#8696A0]">({user.email})</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-[#00A884] bg-[#00A884]/15 dark:bg-[#00A884]/25 px-2.5 py-0.5 rounded-full font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {isCryptoReady ? "E2EE Keys Ready" : "Securing Local Keys..."}
               </span>
             </div>
             <Link
