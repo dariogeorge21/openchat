@@ -12,6 +12,7 @@ import { NewChatModal } from '@/components/chat/new-chat-modal';
 import { NewGroupModal } from '@/components/chat/new-group-modal';
 import { GroupDetailsModal } from '@/components/chat/group-details-modal';
 import { ProfileModal } from '@/components/chat/profile-modal';
+import { ContactInfoModal } from '@/components/chat/contact-info-modal';
 import { OpenChatSplash } from '@/components/brand/open-chat-logo';
 import { Profile } from '@/types/database';
 
@@ -41,6 +42,7 @@ export default function ChatDashboardPage() {
   const [newGroupOpen, setNewGroupOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [groupDetailsOpen, setGroupDetailsOpen] = useState(false);
+  const [contactInfoOpen, setContactInfoOpen] = useState(false);
   const [chatClearKey, setChatClearKey] = useState(0);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -152,7 +154,7 @@ export default function ChatDashboardPage() {
               if (activeConversation.type === 'group') {
                 setGroupDetailsOpen(true);
               } else {
-                setProfileOpen(true);
+                setContactInfoOpen(true);
               }
             }}
             presenceText={peerPresence?.statusText}
@@ -189,6 +191,14 @@ export default function ChatDashboardPage() {
       />
 
       <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
+
+      <ContactInfoModal
+        open={contactInfoOpen}
+        onOpenChange={setContactInfoOpen}
+        contact={activeConversation?.type === 'direct' ? activeConversation.otherParticipant || null : null}
+        isOnline={peerPresence?.isOnline}
+        presenceText={peerPresence?.statusText}
+      />
     </div>
   );
 }
