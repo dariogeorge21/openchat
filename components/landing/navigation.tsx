@@ -5,7 +5,7 @@ import Link from "next/link";
 import { OpenChatLogo } from "@/components/brand/open-chat-logo";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { Menu, X, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
+import { Menu, X, ArrowUpRight, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -15,19 +15,44 @@ export function Navigation({
 }: {
   onOpenAuth: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, profile, isCryptoReady } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const displayName =
+    profile?.display_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white/85 dark:bg-[#111b21]/85 backdrop-blur-md border-b border-[#F1E8EB] dark:border-[#222D34] transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Logo and Brand */}
-        <Link href="/" className="flex items-center gap-3 group">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#111b21]/95 backdrop-blur-md border-b border-[#F1E8EB] dark:border-[#222D34] transition-all">
+      {/* Integrated Auth Banner when Authenticated */}
+      {user && (
+        <div className="bg-[#00A884]/10 dark:bg-[#00A884]/20 border-b border-[#00A884]/20 px-4 py-2 text-xs text-[#111B21] dark:text-[#E9EDEF]">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 truncate">
+              <ShieldCheck className="w-4 h-4 text-[#00A884] flex-shrink-0" />
+              <span className="truncate">
+                Signed in as <strong className="font-semibold">{displayName}</strong>{" "}
+                <span className="text-[#54656F] dark:text-[#8696A0]">({user.email})</span>
+              </span>
+            </div>
+            <Link
+              href="/chat"
+              className="text-xs font-semibold text-[#00A884] hover:text-[#008f6f] flex items-center gap-1 flex-shrink-0 transition-colors"
+            >
+              <span>Go to Chat</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Main Navbar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
+        {/* Left: Brand Logo */}
+        <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
           <OpenChatLogo height={28} className="transition-transform group-hover:scale-[1.02]" />
         </Link>
 
-        {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#737373] dark:text-[#8696A0]">
+        {/* Center: Nav Links */}
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-[#737373] dark:text-[#8696A0]">
           <a
             href="#chat-experience"
             className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#00A884] after:absolute after:bottom-0 after:left-0 after:transition-all"
@@ -42,9 +67,9 @@ export function Navigation({
           </a>
           <a
             href="#comparison"
-            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all whitespace-nowrap"
           >
-            WhatsApp vs OpenChat
+            vs WhatsApp
           </a>
           <a
             href="#features"
@@ -60,37 +85,38 @@ export function Navigation({
           </a>
         </nav>
 
-        {/* Right CTA */}
-        <div className="hidden sm:flex items-center gap-3">
+        {/* Right: Actions */}
+        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
           <ThemeToggle />
-          
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#FAF9FA] dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] text-xs text-[#737373] dark:text-[#8696A0]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-medium text-[#171717] dark:text-[#E9EDEF]">Free & Open</span> • No Phone Required
-          </div>
+
+          {!user && (
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#FAF9FA] dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] text-xs text-[#737373] dark:text-[#8696A0]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-medium text-[#171717] dark:text-[#E9EDEF]">Free &amp; Open</span> • No Phone Required
+            </div>
+          )}
 
           {user ? (
             <Link href="/chat">
               <Button
                 variant="default"
                 size="default"
-                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center gap-2 shadow-sm transition-all"
+                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center gap-2 shadow-sm transition-all cursor-pointer"
               >
-                <span>Open Chat</span>
+                <span>Enter Chat</span>
                 <ArrowUpRight className="w-4 h-4" />
               </Button>
             </Link>
           ) : (
-            <Link href="/login">
-              <Button
-                variant="google"
-                size="default"
-                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 border border-[#F1E8EB] dark:border-[#222D34] hover:border-[#66CCF2] bg-white dark:bg-[#202c33] dark:text-white shadow-sm transition-all"
-              >
-                <GoogleIcon className="w-4 h-4" />
-                <span>Sign in with Google</span>
-              </Button>
-            </Link>
+            <Button
+              onClick={onOpenAuth}
+              variant="google"
+              size="default"
+              className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 border border-[#F1E8EB] dark:border-[#222D34] hover:border-[#00A884] bg-white dark:bg-[#202c33] dark:text-white shadow-sm transition-all cursor-pointer"
+            >
+              <GoogleIcon className="w-4 h-4" />
+              <span>Sign in with Google</span>
+            </Button>
           )}
         </div>
 
@@ -108,16 +134,15 @@ export function Navigation({
               </Button>
             </Link>
           ) : (
-            <Link href="/login">
-              <Button
-                variant="google"
-                size="sm"
-                className="h-8 px-2.5 text-xs rounded-[8px]"
-              >
-                <GoogleIcon className="w-3.5 h-3.5" />
-                <span>Sign in</span>
-              </Button>
-            </Link>
+            <Button
+              onClick={onOpenAuth}
+              variant="google"
+              size="sm"
+              className="h-8 px-2.5 text-xs rounded-[8px]"
+            >
+              <GoogleIcon className="w-3.5 h-3.5" />
+              <span>Sign in</span>
+            </Button>
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -131,7 +156,7 @@ export function Navigation({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="sm:hidden border-b border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#111b21] px-6 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-2">
+        <div className="lg:hidden border-b border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#111b21] px-6 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-2">
           <div className="flex flex-col space-y-3 text-sm font-medium text-[#171717] dark:text-[#E9EDEF]">
             <a
               href="#chat-experience"
@@ -152,7 +177,7 @@ export function Navigation({
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#E64E25]"
             >
-              WhatsApp vs OpenChat
+              vs WhatsApp
             </a>
             <a
               href="#features"
@@ -173,19 +198,31 @@ export function Navigation({
           <div className="pt-3 border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#8696A0]">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>100% Free & Open</span>
+              <span>100% Free &amp; Open</span>
             </div>
-            <Button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAuth();
-              }}
-              variant="brand"
-              size="sm"
-              className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white"
-            >
-              Start Chatting
-            </Button>
+            {user ? (
+              <Link href="/chat" onClick={() => setMobileMenuOpen(false)}>
+                <Button
+                  variant="brand"
+                  size="sm"
+                  className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white"
+                >
+                  Enter Chat
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth();
+                }}
+                variant="brand"
+                size="sm"
+                className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white"
+              >
+                Sign in with Google
+              </Button>
+            )}
           </div>
         </div>
       )}

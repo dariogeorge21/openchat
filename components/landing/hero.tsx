@@ -13,7 +13,7 @@ export function Hero({
   onOpenAuth: () => void;
 }) {
   return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-white dark:bg-[#0B141A]">
+    <section className="relative pt-12 pb-20 md:pt-16 md:pb-24 overflow-hidden bg-white dark:bg-[#0B141A]">
       {/* Background airy geometric accents */}
       <div className="absolute inset-0 pointer-events-none bg-geometric-grid opacity-60 dark:opacity-20" />
 
