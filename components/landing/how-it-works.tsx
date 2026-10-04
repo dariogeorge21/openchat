@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { Users2, Radio, Lock, Zap, CheckCircle2 } from "lucide-react";
+import { Search, MessageSquare, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
 
 export function HowItWorks() {
   const steps = [
@@ -11,47 +11,47 @@ export function HowItWorks() {
       num: "01",
       title: "One-Click Google Verification",
       description:
-        "Authenticate using your trusted Google identity in under 400 milliseconds. No signup forms, no password resets, no friction.",
-      badge: "Zero-Knowledge Storage",
+        "Authenticate using your trusted Google identity in under 1 second. No phone numbers, no SMS OTP codes, and no passwords.",
+      badge: "No SIM Card Required",
       icon: GoogleIcon,
-      accent: "#66CCF2",
-      metric: "400ms Handshake",
+      accent: "#00A884",
+      metric: "< 1s Instant Login",
     },
     {
       num: "02",
-      title: "Discover Rooms & Real-time Peers",
+      title: "Find Anyone by Email or Name",
       description:
-        "Browse open public spaces or generate private ephemeral channel codes to share with friends, teams, or study circles instantly.",
-      badge: "Multi-User Presence",
-      icon: Users2,
-      accent: "#E64E25",
-      metric: "Unlimited Peers",
+        "Connect directly with anyone by searching their Google email address or display name. Start private 1-on-1 chats or spin up group circles instantly.",
+      badge: "Zero Phone Sharing",
+      icon: Search,
+      accent: "#66CCF2",
+      metric: "Direct Search",
     },
     {
       num: "03",
-      title: "Collaborate & Stream Without Lag",
+      title: "Chat with Familiar Real-Time Comfort",
       description:
-        "Enjoy lightning-fast low-latency messaging with active typing states, fluid animations, and rich markdown communication.",
-      badge: "Realtime Sync",
-      icon: Radio,
-      accent: "#171717",
-      metric: "< 25ms Latency",
+        "Enjoy lightning-fast real-time messaging, typing indicators, read receipts (✓✓), presence status ('Online' / 'Last Seen'), and end-to-end security.",
+      badge: "Realtime WebSocket Sync",
+      icon: MessageSquare,
+      accent: "#E64E25",
+      metric: "< 25ms Sync",
     },
   ];
 
   return (
-    <section id="protocol" className="py-24 bg-[#FCFAF9]/60 border-y border-[#F1E8EB] relative">
+    <section id="how-it-works" className="py-24 bg-[#FCFAF9]/60 dark:bg-[#111B21]/60 border-y border-[#F1E8EB] dark:border-[#222D34] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-mono uppercase tracking-widest text-[#E64E25] font-semibold bg-[#E64E25]/10 px-3 py-1 rounded-full border border-[#E64E25]/20">
-            Frictionless Protocol
+          <span className="text-xs font-mono uppercase tracking-widest text-[#00A884] font-semibold bg-[#00A884]/10 dark:bg-[#00A884]/20 px-3.5 py-1 rounded-full border border-[#00A884]/25">
+            Frictionless Communication
           </span>
-          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] tracking-tight">
-            How OpenChat works in <span className="font-normal text-[#66CCF2]">3 simple steps</span>
+          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
+            How OpenChat works in <span className="font-normal text-[#00A884]">3 simple steps</span>
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-[#737373] leading-relaxed">
-            Eliminating 100% of traditional chat onboarding friction. You are 1 click away from real conversations.
+          <p className="mt-4 text-sm sm:text-base text-[#737373] dark:text-[#8696A0] leading-relaxed">
+            Eliminating phone-number friction. You are 1 click away from messaging anyone with a Google account.
           </p>
         </div>
 
@@ -66,33 +66,33 @@ export function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.15 }}
-                className="relative bg-white rounded-[16px] p-8 border border-[#F1E8EB] shadow-[0_2px_12px_-4px_rgba(23,23,23,0.03)] hover:shadow-[0_12px_30px_-8px_rgba(102,204,242,0.12)] hover:border-[#66CCF2]/50 transition-all duration-300 group flex flex-col justify-between"
+                className="relative bg-white dark:bg-[#182229] rounded-[16px] p-8 border border-[#F1E8EB] dark:border-[#222D34] shadow-[0_2px_12px_-4px_rgba(23,23,23,0.03)] hover:shadow-[0_12px_30px_-8px_rgba(0,168,132,0.12)] hover:border-[#00A884]/50 transition-all duration-300 group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="font-[family-name:var(--font-josefin)] text-3xl font-light text-[#737373]/40 group-hover:text-[#66CCF2] transition-colors">
+                    <span className="font-[family-name:var(--font-josefin)] text-3xl font-light text-[#737373]/40 dark:text-[#8696A0]/40 group-hover:text-[#00A884] transition-colors">
                       {step.num}
                     </span>
-                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[#FAF9FA] text-[#737373] border border-[#F1E8EB]">
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[#FAF9FA] dark:bg-[#202C33] text-[#737373] dark:text-[#8696A0] border border-[#F1E8EB] dark:border-[#222D34]">
                       {step.metric}
                     </span>
                   </div>
 
-                  <div className="w-12 h-12 rounded-[12px] bg-[#FAF9FA] border border-[#F1E8EB] flex items-center justify-center mb-6 group-hover:bg-white group-hover:border-[#66CCF2]/40 transition-colors">
-                    <IconComp className="w-5 h-5 text-[#171717]" />
+                  <div className="w-12 h-12 rounded-[12px] bg-[#FAF9FA] dark:bg-[#202C33] border border-[#F1E8EB] dark:border-[#222D34] flex items-center justify-center mb-6 group-hover:bg-white dark:group-hover:bg-[#2A3942] group-hover:border-[#00A884]/40 transition-colors">
+                    <IconComp className="w-5 h-5 text-[#171717] dark:text-[#E9EDEF]" />
                   </div>
 
-                  <h3 className="text-lg font-semibold text-[#171717] mb-2.5 tracking-tight">
+                  <h3 className="text-lg font-semibold text-[#171717] dark:text-[#E9EDEF] mb-2.5 tracking-tight">
                     {step.title}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-[#737373] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#737373] dark:text-[#8696A0] leading-relaxed">
                     {step.description}
                   </p>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-[#F1E8EB]/70 flex items-center gap-1.5 text-xs font-medium text-[#171717]">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#66CCF2]" />
+                <div className="mt-8 pt-4 border-t border-[#F1E8EB]/70 dark:border-[#222D34] flex items-center gap-1.5 text-xs font-medium text-[#171717] dark:text-[#E9EDEF]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#00A884]" />
                   <span>{step.badge}</span>
                 </div>
               </motion.div>

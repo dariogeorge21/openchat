@@ -11,29 +11,34 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    question: "Why does OpenChat use only GoogleAuth?",
+    question: "How is OpenChat a free alternative to WhatsApp?",
     answer:
-      "Traditional chat applications burden you with 8-character passwords, confirmation emails, spam captchas, and password reset workflows. GoogleAuth provides industry-standard OAuth 2.0 authentication in a single click, eliminating database password breaches and making joining instantaneous.",
+      "OpenChat offers the same beloved messaging experience—direct 1-on-1 chats, group circles, real-time typing indicators, double-check read receipts (✓✓), online presence status, and rich media sharing—without requiring a SIM card or phone number. You log in seamlessly with Google, enjoy 100% free access, and chat across any browser on mobile or desktop.",
   },
   {
-    question: "How does multi-user real-time chatting work?",
+    question: "Do I ever need to enter or share my personal phone number?",
     answer:
-      "When you join any channel, your presence is broadcast through a high-throughput, low-latency WebSocket connection. You see other active peers, their typing indicators, and message streams with sub-30ms global dispatch.",
+      "Never. Traditional messengers force you to expose your personal mobile number to everyone in your chat list. OpenChat relies strictly on GoogleAuth (OAuth 2.0 PKCE). Your cell phone number is never collected, stored, or visible to peers.",
   },
   {
-    question: "Can I create private or temporary ephemeral rooms?",
+    question: "How do I find friends and start chatting with them?",
     answer:
-      "Yes. In addition to public lobby channels, you can generate an ephemeral private link with custom room tokens. Ephemeral channels can be configured to purge all messages and memory once participants leave.",
+      "Simply search for any contact using their Google email address or display name. Once selected, you can immediately begin a direct private 1-on-1 conversation or add them into a group circle.",
   },
   {
-    question: "Is there any software or browser extension to install?",
+    question: "Is OpenChat really 100% free to use?",
     answer:
-      "None. OpenChat is 100% web-native, responsive across mobile and desktop devices, and loads instantly without heavy client bundles.",
+      "Yes! OpenChat is completely open and free. There are no subscription tiers, no message limitations, no paywalled features, and no third-party banner ads.",
   },
   {
-    question: "Is OpenChat free to use?",
+    question: "Can I use OpenChat across multiple devices without a linked phone?",
     answer:
-      "OpenChat is completely open and free for individuals, developer communities, and collaborative groups.",
+      "Yes. OpenChat is web-native. You can access your conversations directly from your MacBook, Windows PC, iPad, iPhone, or Android phone without needing your primary mobile device powered on or scanning a pairing QR code.",
+  },
+  {
+    question: "How is privacy and message security handled?",
+    answer:
+      "Conversations are secured using modern client-side Web Cryptography APIs (AES-GCM / ECDH). Your encryption keys are stored locally on your device, ensuring messages remain strictly confidential between you and the recipient.",
   },
 ];
 
@@ -45,17 +50,17 @@ export function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-24 bg-white border-b border-[#F1E8EB]">
+    <section id="faq" className="py-24 bg-white dark:bg-[#111B21] border-b border-[#F1E8EB] dark:border-[#222D34]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <span className="text-xs font-mono uppercase tracking-widest text-[#66CCF2] font-semibold bg-[#66CCF2]/10 px-3 py-1 rounded-full border border-[#66CCF2]/30">
-            Frequently Asked Questions
+          <span className="text-xs font-mono uppercase tracking-widest text-[#00A884] font-semibold bg-[#00A884]/10 dark:bg-[#00A884]/20 px-3.5 py-1 rounded-full border border-[#00A884]/25">
+            Got Questions?
           </span>
-          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] tracking-tight">
-            Clear answers to <span className="font-normal text-[#E64E25]">common queries</span>
+          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
+            Frequently Asked <span className="font-normal text-[#00A884]">Questions</span>
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-[#737373]">
-            Everything you need to know about OpenChat, privacy, and architecture.
+          <p className="mt-3 text-sm sm:text-base text-[#737373] dark:text-[#8696A0]">
+            Everything you need to know about OpenChat, GoogleAuth, and privacy.
           </p>
         </div>
 
@@ -65,18 +70,18 @@ export function FAQSection() {
             return (
               <div
                 key={idx}
-                className="rounded-[16px] border border-[#F1E8EB] overflow-hidden bg-white transition-all hover:border-[#66CCF2]/50"
+                className="rounded-[16px] border border-[#F1E8EB] dark:border-[#222D34] overflow-hidden bg-white dark:bg-[#182229] transition-all hover:border-[#00A884]/50"
               >
                 <button
                   onClick={() => toggle(idx)}
                   className="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-colors"
                 >
-                  <span className="font-medium text-base text-[#171717] pr-4">
+                  <span className="font-medium text-base text-[#171717] dark:text-[#E9EDEF] pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#737373] transition-transform duration-200 flex-shrink-0 ${
-                      isOpen ? "rotate-180 text-[#66CCF2]" : ""
+                    className={`w-4 h-4 text-[#737373] dark:text-[#8696A0] transition-transform duration-200 flex-shrink-0 ${
+                      isOpen ? "rotate-180 text-[#00A884]" : ""
                     }`}
                   />
                 </button>
@@ -89,7 +94,7 @@ export function FAQSection() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <div className="px-6 pb-6 pt-1 text-sm text-[#737373] leading-relaxed border-t border-[#F1E8EB]/50">
+                      <div className="px-6 pb-6 pt-1 text-sm text-[#737373] dark:text-[#8696A0] leading-relaxed border-t border-[#F1E8EB]/50 dark:border-[#222D34]/50">
                         {faq.answer}
                       </div>
                     </motion.div>

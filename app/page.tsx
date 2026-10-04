@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Navigation } from "@/components/landing/navigation";
 import { Hero } from "@/components/landing/hero";
+import { DirectChatShowcase } from "@/components/landing/direct-chat-showcase";
 import { HowItWorks } from "@/components/landing/how-it-works";
+import { ComparisonSection } from "@/components/landing/comparison-section";
 import { FeatureMatrix } from "@/components/landing/feature-matrix";
-import { ActiveRoomsShowcase } from "@/components/landing/active-rooms-showcase";
 import { FAQSection } from "@/components/landing/faq-section";
 import { CTABanner } from "@/components/landing/cta-banner";
 import { Footer } from "@/components/landing/footer";
-import { GoogleAuthModal } from "@/components/landing/google-auth-modal";
-import { ShieldCheck, X } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
@@ -19,37 +19,31 @@ import { useRouter } from "next/navigation";
 export default function LandingPage() {
   const { user, profile, isCryptoReady } = useAuth();
   const router = useRouter();
-  const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || 'User';
-
-  const handleJoinRoom = () => {
-    if (user) {
-      router.push('/chat');
-    } else {
-      router.push('/login');
-    }
-  };
+  const displayName =
+    profile?.display_name || user?.user_metadata?.full_name || user?.email || "User";
 
   const handleOpenAuth = () => {
     if (user) {
-      router.push('/chat');
+      router.push("/chat");
     } else {
-      router.push('/login');
+      router.push("/login");
     }
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#171717] selection:bg-[#66CCF2]/25 selection:text-[#171717]">
+    <div className="min-h-screen bg-white dark:bg-[#0B141A] text-[#171717] dark:text-[#E9EDEF] selection:bg-[#00A884]/25 selection:text-[#171717] dark:selection:text-white">
       {/* Top Banner when Authenticated */}
       {user && (
-        <div className="bg-[#66CCF2]/10 border-b border-[#66CCF2]/30 px-4 py-2.5 text-xs text-[#171717] flex items-center justify-between z-50 sticky top-0">
+        <div className="bg-[#00A884]/10 dark:bg-[#00A884]/15 border-b border-[#00A884]/30 px-4 py-2.5 text-xs text-[#171717] dark:text-[#E9EDEF] flex items-center justify-between z-50 sticky top-0 backdrop-blur-md">
           <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
-            <ShieldCheck className="w-4 h-4 text-[#0983b6]" />
-            <span>
-              Signed in as <strong>{displayName}</strong> ({user.email}). {isCryptoReady ? 'E2EE cryptographic keys ready.' : 'Securing local keys...'}
+            <ShieldCheck className="w-4 h-4 text-[#00A884] flex-shrink-0" />
+            <span className="truncate">
+              Signed in as <strong>{displayName}</strong> ({user.email}).{" "}
+              {isCryptoReady ? "E2EE cryptographic keys ready." : "Securing local keys..."}
             </span>
             <Link
               href="/chat"
-              className="ml-auto bg-[#00A884] text-white hover:bg-[#008f6f] px-3 py-1 rounded text-xs font-medium transition-colors"
+              className="ml-auto bg-[#00A884] text-white hover:bg-[#008f6f] px-3.5 py-1 rounded-[8px] text-xs font-semibold transition-all shadow-xs flex-shrink-0"
             >
               Enter Chat Dashboard &rarr;
             </Link>
@@ -60,21 +54,24 @@ export default function LandingPage() {
       {/* Navigation */}
       <Navigation onOpenAuth={handleOpenAuth} />
 
-      {/* Hero Section */}
+      {/* Hero Section with Interactive Messenger Sandbox */}
       <div id="hero">
         <Hero onOpenAuth={handleOpenAuth} />
       </div>
 
-      {/* 3-Step Protocol */}
+      {/* Direct 1-on-1 & Group Chatting Showcase (Replaces Discord Public Rooms) */}
+      <DirectChatShowcase onStartChat={handleOpenAuth} />
+
+      {/* 3-Step Protocol: GoogleAuth, Find User, Start Chatting */}
       <HowItWorks />
 
-      {/* Active Public Rooms Showcase */}
-      <ActiveRoomsShowcase onJoinRoom={handleJoinRoom} />
+      {/* WhatsApp vs OpenChat Side-by-Side Comparison */}
+      <ComparisonSection />
 
-      {/* Bento Grid Features */}
+      {/* Bento Grid Architecture Features */}
       <FeatureMatrix />
 
-      {/* Minimal FAQ Section */}
+      {/* FAQ Section */}
       <FAQSection />
 
       {/* Final Action Banner */}

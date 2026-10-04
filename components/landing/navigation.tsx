@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { OpenChatLogo, OpenChatIconMark } from "@/components/brand/open-chat-logo";
+import { OpenChatLogo } from "@/components/brand/open-chat-logo";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { Menu, X, ArrowUpRight, ShieldCheck, Zap } from "lucide-react";
+import { Menu, X, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -19,7 +19,7 @@ export function Navigation({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#F1E8EB]/80 transition-all">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/85 dark:bg-[#111b21]/85 backdrop-blur-md border-b border-[#F1E8EB] dark:border-[#222D34] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Logo and Brand */}
         <Link href="/" className="flex items-center gap-3 group">
@@ -27,28 +27,34 @@ export function Navigation({
         </Link>
 
         {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#737373]">
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#737373] dark:text-[#8696A0]">
           <a
-            href="#protocol"
-            className="hover:text-[#171717] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#66CCF2] after:absolute after:bottom-0 after:left-0 after:transition-all"
+            href="#chat-experience"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#00A884] after:absolute after:bottom-0 after:left-0 after:transition-all"
+          >
+            Direct Chat
+          </a>
+          <a
+            href="#how-it-works"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#66CCF2] after:absolute after:bottom-0 after:left-0 after:transition-all"
           >
             How it Works
           </a>
           <a
-            href="#rooms"
-            className="hover:text-[#171717] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all"
+            href="#comparison"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all"
           >
-            Live Rooms
+            WhatsApp vs OpenChat
           </a>
           <a
             href="#features"
-            className="hover:text-[#171717] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#66CCF2] after:absolute after:bottom-0 after:left-0 after:transition-all"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#66CCF2] after:absolute after:bottom-0 after:left-0 after:transition-all"
           >
-            Capabilities
+            Features
           </a>
           <a
             href="#faq"
-            className="hover:text-[#171717] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all"
+            className="hover:text-[#171717] dark:hover:text-white transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[#E64E25] after:absolute after:bottom-0 after:left-0 after:transition-all"
           >
             FAQ
           </a>
@@ -57,9 +63,10 @@ export function Navigation({
         {/* Right CTA */}
         <div className="hidden sm:flex items-center gap-3">
           <ThemeToggle />
+          
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-[#FAF9FA] dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] text-xs text-[#737373] dark:text-[#8696A0]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-mono text-[#171717] dark:text-[#E9EDEF]">E2EE</span> Mesh Active
+            <span className="font-medium text-[#171717] dark:text-[#E9EDEF]">Free & Open</span> • No Phone Required
           </div>
 
           {user ? (
@@ -67,7 +74,7 @@ export function Navigation({
               <Button
                 variant="default"
                 size="default"
-                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center gap-2"
+                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center gap-2 shadow-sm transition-all"
               >
                 <span>Open Chat</span>
                 <ArrowUpRight className="w-4 h-4" />
@@ -78,7 +85,7 @@ export function Navigation({
               <Button
                 variant="google"
                 size="default"
-                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 border border-[#F1E8EB] hover:border-[#66CCF2]"
+                className="rounded-[10px] font-medium text-xs sm:text-sm px-4 h-10 border border-[#F1E8EB] dark:border-[#222D34] hover:border-[#66CCF2] bg-white dark:bg-[#202c33] dark:text-white shadow-sm transition-all"
               >
                 <GoogleIcon className="w-4 h-4" />
                 <span>Sign in with Google</span>
@@ -89,12 +96,13 @@ export function Navigation({
 
         {/* Mobile menu button */}
         <div className="flex sm:hidden items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <Link href="/chat">
               <Button
                 variant="default"
                 size="sm"
-                className="h-8 px-2.5 text-xs bg-[#00A884] text-white"
+                className="h-8 px-2.5 text-xs bg-[#00A884] text-white rounded-[8px]"
               >
                 <span>Chat</span>
               </Button>
@@ -104,7 +112,7 @@ export function Navigation({
               <Button
                 variant="google"
                 size="sm"
-                className="h-8 px-2.5 text-xs"
+                className="h-8 px-2.5 text-xs rounded-[8px]"
               >
                 <GoogleIcon className="w-3.5 h-3.5" />
                 <span>Sign in</span>
@@ -113,7 +121,8 @@ export function Navigation({
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-[8px] border border-[#F1E8EB] text-[#171717]"
+            className="p-2 rounded-[8px] border border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-white cursor-pointer"
+            aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -122,28 +131,35 @@ export function Navigation({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="sm:hidden border-b border-[#F1E8EB] bg-white px-6 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-2">
-          <div className="flex flex-col space-y-3 text-sm font-medium text-[#171717]">
+        <div className="sm:hidden border-b border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#111b21] px-6 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-2">
+          <div className="flex flex-col space-y-3 text-sm font-medium text-[#171717] dark:text-[#E9EDEF]">
             <a
-              href="#protocol"
+              href="#chat-experience"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-1 hover:text-[#00A884]"
+            >
+              Direct Chat
+            </a>
+            <a
+              href="#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#66CCF2]"
             >
               How it Works
             </a>
             <a
-              href="#rooms"
+              href="#comparison"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#E64E25]"
             >
-              Live Rooms
+              WhatsApp vs OpenChat
             </a>
             <a
               href="#features"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#66CCF2]"
             >
-              Capabilities
+              Features
             </a>
             <a
               href="#faq"
@@ -154,10 +170,10 @@ export function Navigation({
             </a>
           </div>
 
-          <div className="pt-3 border-t border-[#F1E8EB] flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-[#737373]">
+          <div className="pt-3 border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#8696A0]">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>1,420 peers active</span>
+              <span>100% Free & Open</span>
             </div>
             <Button
               onClick={() => {
@@ -166,8 +182,9 @@ export function Navigation({
               }}
               variant="brand"
               size="sm"
+              className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white"
             >
-              Connect Now
+              Start Chatting
             </Button>
           </div>
         </div>
