@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   Laptop,
+  Lock,
 } from 'lucide-react';
 
 interface ProfileModalProps {
@@ -34,11 +35,16 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
   const { theme, setTheme } = useTheme();
   const [supabase] = useState(() => createClient());
 
-  const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [about, setAbout] = useState(profile?.about || '');
   const [isSaving, setIsSaving] = useState(false);
   const [copiedFingerprint, setCopiedFingerprint] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (profile?.about !== undefined) {
+      setAbout(profile.about || '');
+    }
+  }, [profile?.about]);
 
   const handleCopyFingerprint = () => {
     if (keyPair?.fingerprint) {
@@ -55,7 +61,6 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
       const { error } = await supabase
         .from('profiles')
         .update({
-          display_name: displayName.trim() || 'User',
           about: about.trim(),
           updated_at: new Date().toISOString(),
         })
@@ -79,7 +84,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
         <DialogHeader className="space-y-1 text-left">
           <DialogTitle className="text-lg font-semibold tracking-tight text-[#111b21] dark:text-[#e9edef] flex items-center gap-2">
             <User className="w-5 h-5 text-[#00A884]" />
-            <span>Profile &amp; E2EE Security</span>
+            <span>Profile &amp; Security</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -110,20 +115,30 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
           </div>
         </div>
 
-        {/* Editable Fields */}
+        {/* Profile Fields */}
         <div className="space-y-3 pt-1">
+          {/* Display Name (Permanent Identity - Cannot be modified) */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[#111b21] dark:text-[#e9edef]">
-              Display Name
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-[#111b21] dark:text-[#e9edef]">
+                Display Name
+              </label>
+              <span className="text-[10px] text-[#8696a0] flex items-center gap-1 font-medium">
+                <Lock className="w-3 h-3 text-[#00A884]" />
+                Original Identity
+              </span>
+            </div>
             <input
               type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full h-9 px-3 text-xs rounded-xl bg-[#f0f2f5] dark:bg-[#111b21] border border-transparent focus:border-[#00A884] focus:outline-hidden text-[#111b21] dark:text-[#e9edef]"
+              value={profile?.display_name || ''}
+              readOnly
+              disabled
+              className="w-full h-9 px-3 text-xs rounded-xl bg-[#f0f2f5]/60 dark:bg-[#111b21]/60 border border-[#e9edef] dark:border-[#222d34] text-[#54656f] dark:text-[#8696a0] cursor-not-allowed select-none opacity-85"
+              title="Display name cannot be modified as it represents your original identity"
             />
           </div>
 
+          {/* About / Bio (Modifiable) */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[#111b21] dark:text-[#e9edef]">
               About / Bio
@@ -142,10 +157,10 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
               size="sm"
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="h-8 text-xs bg-[#00A884] hover:bg-[#008f6f] text-white rounded-lg"
+              className="h-8 text-xs bg-[#00A884] hover:bg-[#008f6f] text-white rounded-lg cursor-pointer"
             >
               {isSaving && <Loader2 className="w-3 h-3 animate-spin mr-1" />}
-              {saveSuccess ? 'Saved!' : 'Save Profile'}
+              {saveSuccess ? 'Saved!' : 'Save Bio'}
             </Button>
           </div>
         </div>
