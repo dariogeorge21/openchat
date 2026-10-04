@@ -74,9 +74,12 @@ export function FAQSection() {
               >
                 <button
                   onClick={() => toggle(idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-colors"
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${idx}`}
+                  aria-label={faq.question}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#00A884]"
                 >
-                  <span className="font-medium text-base text-[#171717] dark:text-[#E9EDEF] pr-4">
+                  <span id={`faq-question-${idx}`} className="font-medium text-base text-[#171717] dark:text-[#E9EDEF] pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
@@ -89,6 +92,9 @@ export function FAQSection() {
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
+                      id={`faq-answer-${idx}`}
+                      role="region"
+                      aria-labelledby={`faq-question-${idx}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}

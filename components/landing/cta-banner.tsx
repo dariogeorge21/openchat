@@ -3,9 +3,19 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { ArrowRight, ShieldCheck, Zap, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Lock, Sparkles, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import Link from "next/link";
 
-export function CTABanner({ onOpenAuth }: { onOpenAuth: () => void }) {
+export function CTABanner({
+  onOpenAuth,
+  isAuthenticating = false,
+}: {
+  onOpenAuth: () => void;
+  isAuthenticating?: boolean;
+}) {
+  const { user } = useAuth();
+
   return (
     <section className="py-20 bg-white dark:bg-[#111B21] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,23 +41,49 @@ export function CTABanner({ onOpenAuth }: { onOpenAuth: () => void }) {
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <Button
-                onClick={onOpenAuth}
-                variant="google"
-                size="xl"
-                className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] gap-2.5 border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#202C33] dark:text-white shadow-sm hover:shadow-md hover:border-[#00A884]"
-              >
-                <GoogleIcon className="w-4 h-4" />
-                <span>Continue with Google</span>
-              </Button>
+              {user ? (
+                <Link href="/chat" className="w-full sm:w-auto">
+                  <Button
+                    variant="brand"
+                    size="xl"
+                    aria-label="Enter chat dashboard"
+                    className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] gap-2.5 bg-[#00A884] hover:bg-[#008f6f] text-white shadow-sm hover:shadow-md transition-all"
+                  >
+                    <span>Enter Chat Dashboard</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  onClick={onOpenAuth}
+                  disabled={isAuthenticating}
+                  variant="google"
+                  size="xl"
+                  aria-label="Continue with Google authentication"
+                  className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] gap-2.5 border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#202C33] dark:text-white shadow-sm hover:shadow-md hover:border-[#00A884] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isAuthenticating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#00A884]" />
+                      <span>Connecting to Google...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleIcon className="w-4 h-4" />
+                      <span>Continue with Google</span>
+                    </>
+                  )}
+                </Button>
+              )}
 
-              <a href="#demo" className="w-full sm:w-auto">
+              <a href="#comparison" aria-label="Compare OpenChat with WhatsApp" className="w-full sm:w-auto">
                 <Button
                   variant="outline"
                   size="xl"
-                  className="w-full sm:w-auto h-13 px-6 text-sm font-medium rounded-[10px] gap-2 border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-[#E9EDEF] hover:border-[#66CCF2] hover:bg-white dark:hover:bg-[#202C33]"
+                  aria-label="See WhatsApp comparison"
+                  className="w-full sm:w-auto h-13 px-6 text-sm font-medium rounded-[10px] gap-2 border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-[#E9EDEF] hover:border-[#66CCF2] hover:bg-white dark:hover:bg-[#202C33] cursor-pointer"
                 >
-                  <span>Test Live Web Demo</span>
+                  <span>Compare with WhatsApp</span>
                   <ArrowRight className="w-4 h-4 text-[#737373] dark:text-[#8696A0]" />
                 </Button>
               </a>

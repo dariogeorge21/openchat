@@ -14,14 +14,18 @@ import {
   Lock,
   Smile,
   Zap,
+  Loader2,
 } from "lucide-react";
-import Link from "next/link";
 
 interface DirectChatShowcaseProps {
   onStartChat: () => void;
+  isAuthenticating?: boolean;
 }
 
-export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
+export function DirectChatShowcase({
+  onStartChat,
+  isAuthenticating = false,
+}: DirectChatShowcaseProps) {
   const [activeTab, setActiveTab] = useState<"direct" | "groups" | "receipts">("direct");
 
   return (
@@ -41,8 +45,8 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
             </p>
           </div>
 
-          {/* Interactive Mode Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {/* Interactive Mode Tabs */}
+          <div role="tablist" aria-label="Feature modes" className="flex items-center gap-2 overflow-x-auto pb-1">
             {[
               { id: "direct", label: "1-on-1 Direct Chats" },
               { id: "groups", label: "Group Circles" },
@@ -50,8 +54,13 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
             ].map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                id={`tab-${tab.id}`}
+                aria-selected={activeTab === tab.id}
+                aria-controls={`panel-${tab.id}`}
+                aria-label={`Show ${tab.label}`}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded-[10px] text-xs font-medium border transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-2 rounded-[10px] text-xs font-medium border transition-all cursor-pointer whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-[#00A884] ${
                   activeTab === tab.id
                     ? "bg-[#171717] dark:bg-white text-white dark:text-[#111B21] border-[#171717] dark:border-white shadow-xs"
                     : "bg-white dark:bg-[#182229] text-[#737373] dark:text-[#8696A0] border-[#F1E8EB] dark:border-[#222D34] hover:text-[#171717] dark:hover:text-white"
@@ -67,6 +76,9 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Card 1: 1-on-1 Direct Messaging */}
           <motion.div
+            id="panel-direct"
+            role="tabpanel"
+            aria-labelledby="tab-direct"
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -126,6 +138,9 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
 
           {/* Card 2: Group Circles */}
           <motion.div
+            id="panel-groups"
+            role="tabpanel"
+            aria-labelledby="tab-groups"
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -186,6 +201,9 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
 
           {/* Card 3: Live Receipts & Presence */}
           <motion.div
+            id="panel-receipts"
+            role="tabpanel"
+            aria-labelledby="tab-receipts"
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -247,7 +265,7 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
         </div>
 
         {/* Action Callout Bar */}
-        <div className="mt-12 p-6 rounded-[16px] bg-white dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 p-6 rounded-[16px] bg-white dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[10px] bg-[#00A884]/15 text-[#00A884] flex items-center justify-center flex-shrink-0">
               <Lock className="w-5 h-5" />
@@ -264,12 +282,23 @@ export function DirectChatShowcase({ onStartChat }: DirectChatShowcaseProps) {
 
           <Button
             onClick={onStartChat}
+            disabled={isAuthenticating}
             variant="brand"
             size="default"
-            className="rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white px-5 h-10 text-xs sm:text-sm font-medium gap-2 shadow-xs transition-all whitespace-nowrap"
+            aria-label="Start chatting on OpenChat"
+            className="rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white px-5 h-10 text-xs sm:text-sm font-medium gap-2 shadow-xs transition-all whitespace-nowrap cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <span>Start Chatting Now</span>
-            <ArrowRight className="w-4 h-4" />
+            {isAuthenticating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <span>Start Chatting Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

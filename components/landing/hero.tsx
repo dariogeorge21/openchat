@@ -4,14 +4,20 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/icons/google-icon";
-import { ArrowRight, ShieldCheck, Zap, Users, Sparkles, MessageCircle, Lock } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Users, Sparkles, MessageCircle, Lock, Loader2 } from "lucide-react";
 import { LiveChatSandbox } from "@/components/landing/live-chat-sandbox";
+import { useAuth } from "@/contexts/auth-context";
+import Link from "next/link";
 
 export function Hero({
   onOpenAuth,
+  isAuthenticating = false,
 }: {
   onOpenAuth: () => void;
+  isAuthenticating?: boolean;
 }) {
+  const { user } = useAuth();
+
   return (
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-24 overflow-hidden bg-white dark:bg-[#0B141A]">
       {/* Background airy geometric accents */}
@@ -30,7 +36,7 @@ export function Hero({
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#F1E8EB] dark:border-[#222D34] bg-[#FAF9FA]/90 dark:bg-[#182229]/90 backdrop-blur text-xs text-[#171717] dark:text-[#E9EDEF] mb-8 shadow-xs"
         >
           <span className="w-2 h-2 rounded-full bg-[#00A884] animate-pulse" />
-          <span className="font-semibold text-[#171717] dark:text-[#E9EDEF]">Free & Open WhatsApp Alternative</span>
+          <span className="font-semibold text-[#171717] dark:text-[#E9EDEF]">Free &amp; Open WhatsApp Alternative</span>
           <span className="text-[#737373] dark:text-[#8696A0]">•</span>
           <span className="text-[#737373] dark:text-[#8696A0] flex items-center gap-1.5">
             <GoogleIcon className="w-3.5 h-3.5" /> 1-Click Google Sign-In
@@ -69,23 +75,49 @@ export function Hero({
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto"
         >
-          <Button
-            onClick={onOpenAuth}
-            variant="google"
-            size="xl"
-            className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] shadow-sm hover:shadow-md transition-all gap-2.5 border border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#202C33] dark:text-white hover:border-[#00A884]"
-          >
-            <GoogleIcon className="w-4 h-4" />
-            <span>Continue with Google</span>
-          </Button>
+          {user ? (
+            <Link href="/chat" className="w-full sm:w-auto">
+              <Button
+                variant="brand"
+                size="xl"
+                aria-label="Enter chat dashboard"
+                className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] shadow-sm hover:shadow-md transition-all gap-2 bg-[#00A884] hover:bg-[#008f6f] text-white"
+              >
+                <span>Enter Chat Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              onClick={onOpenAuth}
+              disabled={isAuthenticating}
+              variant="google"
+              size="xl"
+              aria-label="Continue with Google"
+              className="w-full sm:w-auto h-13 px-8 text-sm font-semibold rounded-[10px] shadow-sm hover:shadow-md transition-all gap-2.5 border border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#202C33] dark:text-white hover:border-[#00A884] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isAuthenticating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-[#00A884]" />
+                  <span>Connecting to Google...</span>
+                </>
+              ) : (
+                <>
+                  <GoogleIcon className="w-4 h-4" />
+                  <span>Continue with Google</span>
+                </>
+              )}
+            </Button>
+          )}
 
-          <a href="#demo" className="w-full sm:w-auto">
+          <a href="#how-it-works" aria-label="Learn how OpenChat works" className="w-full sm:w-auto">
             <Button
               variant="outline"
               size="xl"
-              className="w-full sm:w-auto h-13 px-6 text-sm font-medium rounded-[10px] gap-2 border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-[#E9EDEF] hover:border-[#66CCF2] hover:bg-[#FAF9FA] dark:hover:bg-[#182229]"
+              aria-label="See how OpenChat works in 3 steps"
+              className="w-full sm:w-auto h-13 px-6 text-sm font-medium rounded-[10px] gap-2 border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-[#E9EDEF] hover:border-[#66CCF2] hover:bg-[#FAF9FA] dark:hover:bg-[#182229] cursor-pointer"
             >
-              <span>Test Interactive Demo</span>
+              <span>See How It Works</span>
               <ArrowRight className="w-4 h-4 text-[#737373] dark:text-[#8696A0]" />
             </Button>
           </a>
