@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/landing/navigation";
 import { Hero } from "@/components/landing/hero";
 import { DirectChatShowcase } from "@/components/landing/direct-chat-showcase";
@@ -10,13 +10,22 @@ import { FeatureMatrix } from "@/components/landing/feature-matrix";
 import { FAQSection } from "@/components/landing/faq-section";
 import { CTABanner } from "@/components/landing/cta-banner";
 import { Footer } from "@/components/landing/footer";
-
+import { OpenChatSplash } from "@/components/brand/open-chat-logo";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Display OpenChat logo splash for 2 seconds with minimal modern animation (just like chat page)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleOpenAuth = () => {
     if (user) {
@@ -25,6 +34,10 @@ export default function LandingPage() {
       router.push("/login");
     }
   };
+
+  if (showSplash) {
+    return <OpenChatSplash />;
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0B141A] text-[#171717] dark:text-[#E9EDEF] selection:bg-[#00A884]/25 selection:text-[#171717] dark:selection:text-white">
