@@ -50,13 +50,13 @@ export function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-24 bg-white dark:bg-[#111B21] border-b border-[#F1E8EB] dark:border-[#222D34]">
+    <section id="faq" className="py-14 sm:py-20 md:py-24 bg-white dark:bg-[#111B21] border-b border-[#F1E8EB] dark:border-[#222D34]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <span className="text-xs font-mono uppercase tracking-widest text-[#00A884] font-semibold bg-[#00A884]/10 dark:bg-[#00A884]/20 px-3.5 py-1 rounded-full border border-[#00A884]/25">
             Got Questions?
           </span>
-          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
+          <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-3xl min-[480px]:text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
             Frequently Asked <span className="font-normal text-[#00A884]">Questions</span>
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#737373] dark:text-[#8696A0]">
@@ -64,22 +64,22 @@ export function FAQSection() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {FAQS.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={idx}
-                className="rounded-[16px] border border-[#F1E8EB] dark:border-[#222D34] overflow-hidden bg-white dark:bg-[#182229] transition-all hover:border-[#00A884]/50"
+                className="rounded-[14px] sm:rounded-[16px] border border-[#F1E8EB] dark:border-[#222D34] overflow-hidden bg-white dark:bg-[#182229] transition-all hover:border-[#00A884]/50"
               >
                 <button
                   onClick={() => toggle(idx)}
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${idx}`}
                   aria-label={faq.question}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#00A884]"
+                  className="w-full px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between text-left cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#00A884]"
                 >
-                  <span id={`faq-question-${idx}`} className="font-medium text-base text-[#171717] dark:text-[#E9EDEF] pr-4">
+                  <span id={`faq-question-${idx}`} className="font-medium text-sm sm:text-base text-[#171717] dark:text-[#E9EDEF] pr-3 sm:pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
@@ -100,7 +100,7 @@ export function FAQSection() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <div className="px-6 pb-6 pt-1 text-sm text-[#737373] dark:text-[#8696A0] leading-relaxed border-t border-[#F1E8EB]/50 dark:border-[#222D34]/50">
+                      <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-1 text-xs sm:text-sm text-[#737373] dark:text-[#8696A0] leading-relaxed border-t border-[#F1E8EB]/50 dark:border-[#222D34]/50">
                         {faq.answer}
                       </div>
                     </motion.div>

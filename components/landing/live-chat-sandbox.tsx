@@ -347,18 +347,19 @@ export function LiveChatSandbox({
   return (
     <div className="w-full max-w-5xl mx-auto" id="demo-preview">
       {/* Outer frame with subtle ambient glow and sleek radius */}
-      <div className="relative rounded-[22px] p-[1px] bg-gradient-to-b from-[#00A884]/40 via-[#F1E8EB] dark:via-[#222D34] to-[#66CCF2]/40 shadow-[0_20px_60px_-20px_rgba(0,168,132,0.15),0_10px_30px_-10px_rgba(102,204,242,0.1)]">
-        <div className="bg-[#FFFFFF] dark:bg-[#111B21] rounded-[21px] overflow-hidden border border-[#F1E8EB] dark:border-[#222D34]">
+      <div className="relative rounded-[18px] sm:rounded-[22px] p-[1px] bg-gradient-to-b from-[#00A884]/40 via-[#F1E8EB] dark:via-[#222D34] to-[#66CCF2]/40 shadow-[0_20px_60px_-20px_rgba(0,168,132,0.15),0_10px_30px_-10px_rgba(102,204,242,0.1)]">
+        <div className="bg-[#FFFFFF] dark:bg-[#111B21] rounded-[17px] sm:rounded-[21px] overflow-hidden border border-[#F1E8EB] dark:border-[#222D34]">
           {/* Top Window Chrome */}
-          <div className="px-5 py-3 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5]/80 dark:bg-[#182229]/90 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#E64E25]/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-[#66CCF2]/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-[#00A884]/80 inline-block" />
-              <div className="h-4 w-[1px] bg-[#E2E8F0] dark:bg-[#222D34] mx-2" />
-              <span className="text-xs font-mono text-[#54656F] dark:text-[#8696A0] flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                openchat://messenger.web/direct
+          <div className="px-3 sm:px-5 py-2 sm:py-3 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5]/80 dark:bg-[#182229]/90 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#E64E25]/80 inline-block flex-shrink-0" />
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#66CCF2]/80 inline-block flex-shrink-0" />
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#00A884]/80 inline-block flex-shrink-0" />
+              <div className="h-4 w-[1px] bg-[#E2E8F0] dark:bg-[#222D34] mx-1 sm:mx-2 hidden min-[360px]:block" />
+              <span className="text-[11px] sm:text-xs font-mono text-[#54656F] dark:text-[#8696A0] flex items-center gap-1.5 truncate">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                <span className="truncate">openchat://messenger.web</span>
+                <span className="hidden sm:inline">/direct</span>
               </span>
             </div>
 
@@ -374,18 +375,18 @@ export function LiveChatSandbox({
                 }
               }}
               aria-label="Google authentication status: Verified with Google. Click to sign in."
-              className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-[#202C33] border border-[#F1E8EB] dark:border-[#222D34] rounded-[10px] cursor-pointer hover:border-[#00A884] transition-colors shadow-xs"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 bg-white dark:bg-[#202C33] border border-[#F1E8EB] dark:border-[#222D34] rounded-[10px] cursor-pointer hover:border-[#00A884] transition-colors shadow-xs flex-shrink-0"
             >
-              <GoogleIcon className="w-3.5 h-3.5" />
+              <GoogleIcon className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="text-xs text-[#111B21] dark:text-[#E9EDEF] font-medium hidden sm:inline">
                 Verified with Google
               </span>
-              <span className="text-xs text-[#00A884] font-semibold">Free Access</span>
+              <span className="text-[11px] sm:text-xs text-[#00A884] font-semibold">Free Access</span>
             </div>
           </div>
 
           {/* Main WhatsApp-Style Dual Pane */}
-          <div className="grid grid-cols-1 md:grid-cols-12 min-h-[520px] max-h-[580px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px] sm:min-h-[520px] max-h-[520px] sm:max-h-[580px]">
             {/* Left Sidebar: Conversations & Contacts List */}
             <div
               className={`md:col-span-5 lg:col-span-4 border-r border-[#F1E8EB] dark:border-[#222D34] bg-[#FFFFFF] dark:bg-[#111B21] flex flex-col justify-between ${
@@ -394,32 +395,32 @@ export function LiveChatSandbox({
             >
               <div>
                 {/* User Header */}
-                <div className="p-3.5 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5]/60 dark:bg-[#182229]/60 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative">
+                <div className="p-3 sm:p-3.5 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5]/60 dark:bg-[#182229]/60 flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                    <div className="relative flex-shrink-0">
                       <img
                         src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
                         alt="Your avatar preview"
-                        className="w-9 h-9 rounded-full object-cover ring-1 ring-[#F1E8EB] dark:ring-[#222D34]"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-1 ring-[#F1E8EB] dark:ring-[#222D34]"
                       />
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111B21]" />
                     </div>
-                    <div>
-                      <div className="text-xs font-semibold text-[#111B21] dark:text-[#E9EDEF] flex items-center gap-1.5">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-[#111B21] dark:text-[#E9EDEF] flex items-center gap-1.5 truncate">
                         <span>You</span>
-                        <GoogleIcon className="w-3 h-3" />
+                        <GoogleIcon className="w-3 h-3 flex-shrink-0" />
                       </div>
-                      <p className="text-[11px] text-[#54656F] dark:text-[#8696A0]">you@gmail.com</p>
+                      <p className="text-[10px] sm:text-[11px] text-[#54656F] dark:text-[#8696A0] truncate">you@gmail.com</p>
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#00A884] bg-[#00A884]/10 dark:bg-[#00A884]/20 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#00A884] bg-[#00A884]/10 dark:bg-[#00A884]/20 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                     Online
                   </span>
                 </div>
 
                 {/* Search Bar */}
-                <div className="p-3 border-b border-[#F1E8EB] dark:border-[#222D34]">
+                <div className="p-2.5 sm:p-3 border-b border-[#F1E8EB] dark:border-[#222D34]">
                   <div className="relative flex items-center">
                     <Search className="w-4 h-4 text-[#54656F] dark:text-[#8696A0] absolute left-3 pointer-events-none" />
                     <input
@@ -432,8 +433,8 @@ export function LiveChatSandbox({
                     />
                   </div>
 
-                  {/* Filter Pills */}
-                  <div role="tablist" aria-label="Conversation filters" className="flex items-center gap-1.5 mt-2.5">
+                  {/* Filter Pills with smooth horizontal scrolling */}
+                  <div role="tablist" aria-label="Conversation filters" className="flex items-center gap-1.5 mt-2 sm:mt-2.5 overflow-x-auto pb-0.5 scrollbar-none [scrollbar-width:none]">
                     {[
                       { id: "all", label: "All Chats" },
                       { id: "direct", label: "Direct (1-on-1)" },
@@ -554,13 +555,13 @@ export function LiveChatSandbox({
               <div className="absolute inset-0 opacity-[0.035] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#111B21_1px,transparent_1px)] [background-size:16px_16px]" />
 
               {/* Conversation Header */}
-              <div className="relative z-10 px-4 py-3 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5] dark:bg-[#202C33] flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="relative z-10 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-[#F1E8EB] dark:border-[#222D34] bg-[#F0F2F5] dark:bg-[#202C33] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   {/* Mobile Back Button */}
                   <button
                     onClick={() => setMobileView("list")}
                     aria-label="Back to contacts list"
-                    className="md:hidden p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-[#54656F] dark:text-[#8696A0] cursor-pointer"
+                    className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-[#54656F] dark:text-[#8696A0] cursor-pointer flex-shrink-0"
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </button>
@@ -569,18 +570,18 @@ export function LiveChatSandbox({
                     <img
                       src={activeContact.avatar}
                       alt=""
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                     />
                     {activeContact.isOnline && (
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#202C33]" />
                     )}
                   </div>
 
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-semibold text-[#111B21] dark:text-[#E9EDEF]">
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-semibold text-[#111B21] dark:text-[#E9EDEF] truncate">
                       {activeContact.name}
                     </h4>
-                    <p className="text-[11px] text-[#54656F] dark:text-[#8696A0] flex items-center gap-1.5">
+                    <p className="text-[10px] sm:text-[11px] text-[#54656F] dark:text-[#8696A0] flex items-center gap-1 sm:gap-1.5 truncate">
                       {isTyping ? (
                         <span className="text-[#00A884] font-medium animate-pulse">
                           typing...
@@ -588,10 +589,10 @@ export function LiveChatSandbox({
                       ) : activeContact.isOnline ? (
                         <span className="text-[#00A884] font-medium">Online</span>
                       ) : (
-                        <span>last seen {activeContact.lastSeen}</span>
+                        <span className="truncate">last seen {activeContact.lastSeen}</span>
                       )}
                       <span>•</span>
-                      <span className="font-mono text-[10px] truncate max-w-[130px] sm:max-w-none">
+                      <span className="font-mono text-[9px] sm:text-[10px] truncate max-w-[90px] min-[360px]:max-w-[130px] sm:max-w-none">
                         {activeContact.email}
                       </span>
                     </p>
@@ -599,20 +600,20 @@ export function LiveChatSandbox({
                 </div>
 
                 {/* Header Action Mockups with a11y */}
-                <div className="flex items-center gap-2 text-[#54656F] dark:text-[#8696A0]">
+                <div className="flex items-center gap-1 sm:gap-2 text-[#54656F] dark:text-[#8696A0] flex-shrink-0">
                   <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-white/70 dark:bg-[#111B21]/50 border border-[#F1E8EB] dark:border-[#222D34] text-[11px] text-[#00A884]">
                     <Lock className="w-3 h-3" />
                     <span>E2EE Active</span>
                   </div>
                   <button
                     aria-label="Search conversation history"
-                    className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-1.5 sm:p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <Search className="w-4 h-4" />
                   </button>
                   <button
                     aria-label="More chat options"
-                    className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-1.5 sm:p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <MoreVertical className="w-4 h-4" />
                   </button>
@@ -624,7 +625,7 @@ export function LiveChatSandbox({
                 ref={messagesContainerRef}
                 role="log"
                 aria-label={`Chat history with ${activeContact.name}`}
-                className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 max-h-[380px]"
+                className="relative z-10 flex-1 overflow-y-auto p-3 sm:p-5 space-y-2.5 sm:space-y-3 max-h-[300px] sm:max-h-[380px]"
               >
                 {/* E2EE Info Pill */}
                 <div className="text-center my-2">
@@ -704,8 +705,8 @@ export function LiveChatSandbox({
               </div>
 
               {/* Quick Prompts Bar */}
-              <div className="relative z-10 px-4 py-1.5 bg-[#F0F2F5]/80 dark:bg-[#182229]/80 border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center gap-2 overflow-x-auto">
-                <span className="text-[10px] font-medium text-[#54656F] dark:text-[#8696A0] whitespace-nowrap flex items-center gap-1">
+              <div className="relative z-10 px-3 sm:px-4 py-1.5 bg-[#F0F2F5]/80 dark:bg-[#182229]/80 border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none [scrollbar-width:none]">
+                <span className="text-[10px] font-medium text-[#54656F] dark:text-[#8696A0] whitespace-nowrap flex items-center gap-1 flex-shrink-0">
                   <Sparkles className="w-3 h-3 text-[#00A884]" /> Try quick reply:
                 </span>
                 {samplePrompts.map((prompt) => (
@@ -713,7 +714,7 @@ export function LiveChatSandbox({
                     key={prompt}
                     onClick={() => handleSendMessage(prompt)}
                     aria-label={`Send suggested reply: ${prompt}`}
-                    className="text-[11px] whitespace-nowrap px-2.5 py-1 rounded-full bg-white dark:bg-[#202C33] hover:bg-[#FAF9FA] dark:hover:bg-[#2A3942] border border-[#F1E8EB] dark:border-[#222D34] text-[#111B21] dark:text-[#E9EDEF] transition-colors cursor-pointer shadow-2xs"
+                    className="text-[10px] sm:text-[11px] whitespace-nowrap px-2.5 py-1 rounded-full bg-white dark:bg-[#202C33] hover:bg-[#FAF9FA] dark:hover:bg-[#2A3942] border border-[#F1E8EB] dark:border-[#222D34] text-[#111B21] dark:text-[#E9EDEF] transition-colors cursor-pointer shadow-2xs flex-shrink-0"
                   >
                     {prompt}
                   </button>
@@ -721,29 +722,29 @@ export function LiveChatSandbox({
               </div>
 
               {/* Bottom Message Input Bar */}
-              <div className="relative z-10 p-3 bg-[#F0F2F5] dark:bg-[#202C33] border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center gap-2">
+              <div className="relative z-10 p-2 sm:p-3 bg-[#F0F2F5] dark:bg-[#202C33] border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   aria-label="Insert emoji"
-                  className="p-2 text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 sm:p-2 text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer flex-shrink-0"
                   title="Emoji"
                 >
-                  <Smile className="w-5 h-5" />
+                  <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 
                 <button
                   type="button"
                   aria-label="Attach file or media"
-                  className="p-2 text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer"
+                  className="hidden min-[380px]:block p-1.5 sm:p-2 text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer flex-shrink-0"
                   title="Attach file"
                 >
-                  <Paperclip className="w-5 h-5" />
+                  <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
                   <input
                     type="text"
-                    placeholder={`Type a message to ${activeContact.name}...`}
+                    placeholder={`Message ${activeContact.name}...`}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => {
@@ -753,7 +754,7 @@ export function LiveChatSandbox({
                       }
                     }}
                     aria-label={`Type a message to ${activeContact.name}`}
-                    className="w-full py-2 px-3.5 text-xs sm:text-sm bg-white dark:bg-[#2A3942] text-[#111B21] dark:text-[#E9EDEF] placeholder-[#54656F] dark:placeholder-[#8696A0] rounded-[8px] border-none focus:outline-none focus:ring-1 focus:ring-[#00A884]"
+                    className="w-full py-1.5 sm:py-2 px-3 sm:px-3.5 text-base sm:text-sm bg-white dark:bg-[#2A3942] text-[#111B21] dark:text-[#E9EDEF] placeholder-[#54656F] dark:placeholder-[#8696A0] rounded-[8px] border-none focus:outline-none focus:ring-1 focus:ring-[#00A884]"
                   />
                 </div>
 
@@ -761,19 +762,19 @@ export function LiveChatSandbox({
                   <button
                     onClick={() => handleSendMessage()}
                     aria-label="Send message"
-                    className="p-2.5 rounded-full bg-[#00A884] hover:bg-[#008f6f] text-white shadow-sm transition-all cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-full bg-[#00A884] hover:bg-[#008f6f] text-white shadow-sm transition-all cursor-pointer flex-shrink-0"
                     title="Send Message"
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     aria-label="Record voice note"
-                    className="p-2.5 rounded-full text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-full text-[#54656F] dark:text-[#8696A0] hover:text-[#111B21] dark:hover:text-white transition-colors cursor-pointer flex-shrink-0"
                     title="Voice note"
                   >
-                    <Mic className="w-5 h-5" />
+                    <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 )}
               </div>

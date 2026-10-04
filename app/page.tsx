@@ -66,7 +66,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0B141A] text-[#171717] dark:text-[#E9EDEF] selection:bg-[#00A884]/25 selection:text-[#171717] dark:selection:text-white">
+    <div className="min-h-screen bg-white dark:bg-[#0B141A] text-[#171717] dark:text-[#E9EDEF] selection:bg-[#00A884]/25 selection:text-[#171717] dark:selection:text-white overflow-x-hidden w-full">
       {/* Navigation with integrated user status banner and auth loading state */}
       <Navigation onOpenAuth={handleAuth} isAuthenticating={isAuthenticating} />
 

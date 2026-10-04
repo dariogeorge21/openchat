@@ -29,14 +29,14 @@ export function DirectChatShowcase({
   const [activeTab, setActiveTab] = useState<"direct" | "groups" | "receipts">("direct");
 
   return (
-    <section id="chat-experience" className="py-24 bg-[#FAF9FA] dark:bg-[#0E161B] border-b border-[#F1E8EB] dark:border-[#222D34] relative">
+    <section id="chat-experience" className="py-14 sm:py-20 md:py-24 bg-[#FAF9FA] dark:bg-[#0E161B] border-b border-[#F1E8EB] dark:border-[#222D34] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-16">
           <div>
             <span className="text-xs font-mono uppercase tracking-widest text-[#00A884] font-semibold bg-[#00A884]/10 dark:bg-[#00A884]/20 px-3.5 py-1 rounded-full border border-[#00A884]/25">
               Personal Messaging
             </span>
-            <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
+            <h2 className="mt-4 font-[family-name:var(--font-josefin)] font-light text-3xl min-[480px]:text-4xl sm:text-5xl text-[#171717] dark:text-white tracking-tight">
               Designed for <span className="font-normal text-[#00A884]">real people</span>, not bloated servers
             </h2>
             <p className="mt-2 text-sm sm:text-base text-[#737373] dark:text-[#8696A0] max-w-xl">
@@ -45,8 +45,8 @@ export function DirectChatShowcase({
             </p>
           </div>
 
-          {/* Interactive Mode Tabs */}
-          <div role="tablist" aria-label="Feature modes" className="flex items-center gap-2 overflow-x-auto pb-1">
+          {/* Interactive Mode Tabs with horizontal scroll on mobile */}
+          <div role="tablist" aria-label="Feature modes" className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none [scrollbar-width:none]">
             {[
               { id: "direct", label: "1-on-1 Direct Chats" },
               { id: "groups", label: "Group Circles" },
@@ -60,7 +60,7 @@ export function DirectChatShowcase({
                 aria-controls={`panel-${tab.id}`}
                 aria-label={`Show ${tab.label}`}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded-[10px] text-xs font-medium border transition-all cursor-pointer whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-[#00A884] ${
+                className={`px-3 sm:px-4 py-2 rounded-[10px] text-xs font-medium border transition-all cursor-pointer whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-[#00A884] flex-shrink-0 ${
                   activeTab === tab.id
                     ? "bg-[#171717] dark:bg-white text-white dark:text-[#111B21] border-[#171717] dark:border-white shadow-xs"
                     : "bg-white dark:bg-[#182229] text-[#737373] dark:text-[#8696A0] border-[#F1E8EB] dark:border-[#222D34] hover:text-[#171717] dark:hover:text-white"
@@ -73,7 +73,7 @@ export function DirectChatShowcase({
         </div>
 
         {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Card 1: 1-on-1 Direct Messaging */}
           <motion.div
             id="panel-direct"
@@ -83,7 +83,7 @@ export function DirectChatShowcase({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            className={`rounded-[20px] p-7 border transition-all duration-300 flex flex-col justify-between ${
+            className={`rounded-[18px] sm:rounded-[20px] p-5 sm:p-7 border transition-all duration-300 flex flex-col justify-between ${
               activeTab === "direct"
                 ? "bg-white dark:bg-[#182229] border-[#00A884] shadow-[0_12px_32px_-8px_rgba(0,168,132,0.15)] ring-1 ring-[#00A884]/30"
                 : "bg-white dark:bg-[#182229] border-[#F1E8EB] dark:border-[#222D34] shadow-xs hover:border-[#00A884]/40"
@@ -145,7 +145,7 @@ export function DirectChatShowcase({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className={`rounded-[20px] p-7 border transition-all duration-300 flex flex-col justify-between ${
+            className={`rounded-[18px] sm:rounded-[20px] p-5 sm:p-7 border transition-all duration-300 flex flex-col justify-between ${
               activeTab === "groups"
                 ? "bg-white dark:bg-[#182229] border-[#66CCF2] shadow-[0_12px_32px_-8px_rgba(102,204,242,0.15)] ring-1 ring-[#66CCF2]/30"
                 : "bg-white dark:bg-[#182229] border-[#F1E8EB] dark:border-[#222D34] shadow-xs hover:border-[#66CCF2]/40"
@@ -208,7 +208,7 @@ export function DirectChatShowcase({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className={`rounded-[20px] p-7 border transition-all duration-300 flex flex-col justify-between ${
+            className={`rounded-[18px] sm:rounded-[20px] p-5 sm:p-7 border transition-all duration-300 flex flex-col justify-between ${
               activeTab === "receipts"
                 ? "bg-white dark:bg-[#182229] border-[#E64E25] shadow-[0_12px_32px_-8px_rgba(230,78,37,0.15)] ring-1 ring-[#E64E25]/30"
                 : "bg-white dark:bg-[#182229] border-[#F1E8EB] dark:border-[#222D34] shadow-xs hover:border-[#E64E25]/40"
@@ -265,7 +265,7 @@ export function DirectChatShowcase({
         </div>
 
         {/* Action Callout Bar */}
-        <div className="mt-12 p-6 rounded-[16px] bg-white dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="mt-10 sm:mt-12 p-4 sm:p-6 rounded-[16px] bg-white dark:bg-[#182229] border border-[#F1E8EB] dark:border-[#222D34] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[10px] bg-[#00A884]/15 text-[#00A884] flex items-center justify-center flex-shrink-0">
               <Lock className="w-5 h-5" />
@@ -286,7 +286,7 @@ export function DirectChatShowcase({
             variant="brand"
             size="default"
             aria-label="Start chatting on OpenChat"
-            className="rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white px-5 h-10 text-xs sm:text-sm font-medium gap-2 shadow-xs transition-all whitespace-nowrap cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white px-5 h-11 sm:h-10 text-xs sm:text-sm font-medium gap-2 shadow-xs transition-all whitespace-nowrap cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isAuthenticating ? (
               <>

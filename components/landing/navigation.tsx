@@ -26,19 +26,19 @@ export function Navigation({
     <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#111b21]/95 backdrop-blur-md border-b border-[#F1E8EB] dark:border-[#222D34] transition-all">
       {/* Integrated Auth Banner when Authenticated */}
       {user && (
-        <div className="bg-[#00A884]/10 dark:bg-[#00A884]/20 border-b border-[#00A884]/20 px-4 py-2 text-xs text-[#111B21] dark:text-[#E9EDEF]">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 truncate">
+        <div className="bg-[#00A884]/10 dark:bg-[#00A884]/20 border-b border-[#00A884]/20 px-3 sm:px-4 py-2 text-xs text-[#111B21] dark:text-[#E9EDEF]">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               <ShieldCheck className="w-4 h-4 text-[#00A884] flex-shrink-0" />
-              <span className="truncate">
+              <span className="truncate text-[11px] sm:text-xs">
                 Signed in as <strong className="font-semibold">{displayName}</strong>{" "}
-                <span className="text-[#54656F] dark:text-[#8696A0]">({user.email})</span>
+                <span className="text-[#54656F] dark:text-[#8696A0] hidden sm:inline">({user.email})</span>
               </span>
             </div>
             <Link
               href="/chat"
               aria-label="Go to chat dashboard"
-              className="text-xs font-semibold text-[#00A884] hover:text-[#008f6f] flex items-center gap-1 flex-shrink-0 transition-colors"
+              className="text-[11px] sm:text-xs font-semibold text-[#00A884] hover:text-[#008f6f] flex items-center gap-1 flex-shrink-0 transition-colors whitespace-nowrap"
             >
               <span>Go to Chat</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -48,10 +48,10 @@ export function Navigation({
       )}
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Brand Logo */}
-        <Link href="/" aria-label="OpenChat Home" className="flex items-center gap-3 group flex-shrink-0">
-          <OpenChatLogo height={28} className="transition-transform group-hover:scale-[1.02]" />
+        <Link href="/" aria-label="OpenChat Home" className="flex items-center gap-2 sm:gap-3 group flex-shrink-0">
+          <OpenChatLogo height={24} className="h-6 sm:h-7 md:h-8 w-auto max-w-[140px] min-[380px]:max-w-[170px] sm:max-w-none transition-transform group-hover:scale-[1.02]" />
         </Link>
 
         {/* Center: Nav Links */}
@@ -132,8 +132,8 @@ export function Navigation({
           )}
         </div>
 
-        {/* Mobile menu button */}
-        <div className="flex sm:hidden items-center gap-2">
+        {/* Mobile controls */}
+        <div className="flex sm:hidden items-center gap-1.5">
           <ThemeToggle />
           {user ? (
             <Link href="/chat">
@@ -153,7 +153,7 @@ export function Navigation({
               variant="google"
               size="sm"
               aria-label="Sign in with Google"
-              className="h-8 px-2.5 text-xs rounded-[8px] disabled:opacity-70"
+              className="hidden min-[380px]:inline-flex h-8 px-2.5 text-xs rounded-[8px] disabled:opacity-70"
             >
               {isAuthenticating ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00A884]" />
@@ -167,7 +167,7 @@ export function Navigation({
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-[8px] border border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-white cursor-pointer"
+            className="p-2 rounded-[8px] border border-[#F1E8EB] dark:border-[#222D34] text-[#171717] dark:text-white cursor-pointer active:scale-95 transition-transform"
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileMenuOpen}
           >
@@ -178,52 +178,56 @@ export function Navigation({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#111b21] px-6 py-5 space-y-4 shadow-lg animate-in slide-in-from-top-2">
-          <div className="flex flex-col space-y-3 text-sm font-medium text-[#171717] dark:text-[#E9EDEF]">
+        <div className="lg:hidden border-b border-[#F1E8EB] dark:border-[#222D34] bg-white dark:bg-[#111b21] px-4 py-4 space-y-4 shadow-lg animate-in slide-in-from-top-2">
+          <div className="flex flex-col space-y-1 text-sm font-medium text-[#171717] dark:text-[#E9EDEF]">
             <a
               href="#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#00A884]"
+              className="px-3 py-2.5 rounded-[8px] hover:bg-[#FAF9FA] dark:hover:bg-[#182229] hover:text-[#00A884] transition-colors"
             >
               How It Works
             </a>
             <a
               href="#comparison"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#E64E25]"
+              className="px-3 py-2.5 rounded-[8px] hover:bg-[#FAF9FA] dark:hover:bg-[#182229] hover:text-[#E64E25] transition-colors"
             >
               Why OpenChat
             </a>
             <a
               href="#features"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#66CCF2]"
+              className="px-3 py-2.5 rounded-[8px] hover:bg-[#FAF9FA] dark:hover:bg-[#182229] hover:text-[#66CCF2] transition-colors"
             >
               Features
             </a>
             <a
               href="#faq"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#E64E25]"
+              className="px-3 py-2.5 rounded-[8px] hover:bg-[#FAF9FA] dark:hover:bg-[#182229] hover:text-[#E64E25] transition-colors"
             >
               FAQ
             </a>
           </div>
 
-          <div className="pt-3 border-t border-[#F1E8EB] dark:border-[#222D34] flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#8696A0]">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>100% Free &amp; Open</span>
+          <div className="pt-3 border-t border-[#F1E8EB] dark:border-[#222D34] flex flex-col gap-3">
+            <div className="flex items-center justify-between text-xs text-[#737373] dark:text-[#8696A0] px-1">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>100% Free &amp; Open</span>
+              </span>
+              <span>No Phone Required</span>
             </div>
             {user ? (
-              <Link href="/chat" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/chat" onClick={() => setMobileMenuOpen(false)} className="w-full">
                 <Button
                   variant="brand"
-                  size="sm"
+                  size="default"
                   aria-label="Enter chat"
-                  className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white"
+                  className="w-full h-11 rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center justify-center gap-2"
                 >
-                  Enter Chat
+                  <span>Enter Chat Dashboard</span>
+                  <ArrowUpRight className="w-4 h-4" />
                 </Button>
               </Link>
             ) : (
@@ -234,17 +238,20 @@ export function Navigation({
                 }}
                 disabled={isAuthenticating}
                 variant="brand"
-                size="sm"
+                size="default"
                 aria-label="Sign in with Google"
-                className="rounded-[8px] bg-[#00A884] hover:bg-[#008f6f] text-white disabled:opacity-75"
+                className="w-full h-11 rounded-[10px] bg-[#00A884] hover:bg-[#008f6f] text-white flex items-center justify-center gap-2 disabled:opacity-75"
               >
                 {isAuthenticating ? (
-                  <span className="flex items-center gap-1.5">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Connecting...
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Connecting to Google...
                   </span>
                 ) : (
-                  "Sign in with Google"
+                  <>
+                    <GoogleIcon className="w-4 h-4" />
+                    <span>Sign in with Google</span>
+                  </>
                 )}
               </Button>
             )}
