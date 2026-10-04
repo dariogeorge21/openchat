@@ -139,6 +139,7 @@ export default function ChatDashboardPage() {
           presenceMap={presenceMap}
           onClearChat={handleClearChat}
           onArchiveChat={toggleArchiveChat}
+          onSelectUserForChat={handleSelectUserForChat}
         />
       </div>
 

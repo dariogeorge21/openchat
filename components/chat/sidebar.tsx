@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { UIConversation } from '@/types/chat';
+import { Profile } from '@/types/database';
 import { useAuth } from '@/contexts/auth-context';
+import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ClearChatModal } from './clear-chat-modal';
 import {
@@ -19,6 +21,9 @@ import {
   ArchiveRestore,
   ArrowLeft,
   ChevronDown,
+  Sparkles,
+  Clock,
+  Loader2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +36,7 @@ interface SidebarProps {
   presenceMap: Record<string, { isOnline: boolean; lastSeen: string }>;
   onClearChat?: (convId: string) => Promise<void>;
   onArchiveChat?: (convId: string, archive?: boolean) => Promise<void>;
+  onSelectUserForChat?: (user: Profile) => Promise<void>;
 }
 
 function formatConversationTime(dateString: string): string {
@@ -51,6 +57,40 @@ function formatConversationTime(dateString: string): string {
   }
 }
 
+function formatJoinedDate(dateString?: string): string {
+  try {
+    if (!dateString) return 'Joined recently';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return 'Joined recently';
+    const now = new Date();
+    const diffMs = Math.max(0, now.getTime() - d.getTime());
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMinutes < 1) return 'Joined just now';
+    if (diffMinutes < 60) return `Joined ${diffMinutes}m ago`;
+    if (diffHours < 24 && d.toDateString() === now.toDateString()) {
+      return `Joined today at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) {
+      return `Joined yesterday at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    if (diffDays < 7) {
+      return `Joined ${diffDays}d ago`;
+    }
+    return `Joined ${d.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    })}`;
+  } catch {
+    return 'Joined recently';
+  }
+}
+
 export function Sidebar({
   conversations,
   activeConversation,
@@ -61,6 +101,7 @@ export function Sidebar({
   presenceMap,
   onClearChat,
   onArchiveChat,
+  onSelectUserForChat,
 }: SidebarProps) {
   const { user, profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,6 +110,10 @@ export function Sidebar({
   const [confirmClearConv, setConfirmClearConv] = useState<UIConversation | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const sidebarMenuRef = useRef<HTMLDivElement>(null);
+
+  // Available new users state
+  const [availableProfiles, setAvailableProfiles] = useState<Profile[]>([]);
+  const [startingChatUserId, setStartingChatUserId] = useState<string | null>(null);
 
   const archivedCount = conversations.filter((c) => Boolean(c.is_archived)).length;
 
@@ -104,39 +149,155 @@ export function Sidebar({
     };
   }, [openMenuConvId]);
 
-  const filteredConversations = conversations.filter((c) => {
-    // Filter by archived status
-    if (filterType === 'archived') {
-      if (!c.is_archived) return false;
-    } else {
-      if (c.is_archived) return false;
-      if (filterType === 'unread' && c.unreadCount <= 0) return false;
-      if (filterType === 'groups' && c.type !== 'group') return false;
-    }
+  // Set of all user IDs the current user has already chatted with in direct conversations
+  const chattedUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    conversations.forEach((conv) => {
+      if (conv.type === 'direct') {
+        if (conv.otherParticipant?.id) {
+          ids.add(conv.otherParticipant.id);
+        }
+        if (conv.members) {
+          conv.members.forEach((m) => {
+            if (m.user_id && m.user_id !== user?.id) {
+              ids.add(m.user_id);
+            }
+          });
+        }
+      }
+    });
+    return ids;
+  }, [conversations, user?.id]);
 
-    // Filter by search query
-    if (!searchQuery.trim()) return true;
+  // Fetch all registered profiles and listen for newly joined users via realtime
+  useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
+    const supabase = createClient();
+
+    const fetchUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email, display_name, username, avatar_url, about, last_seen, is_online, created_at, updated_at')
+          .neq('id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (!error && data && isMounted) {
+          setAvailableProfiles(data as Profile[]);
+        }
+      } catch (err) {
+        console.error('Error fetching available users:', err);
+      }
+    };
+
+    fetchUsers();
+
+    // Realtime listener for newly registered users
+    const channel = supabase
+      .channel('public:profiles:sidebar_new_users')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'profiles' },
+        (payload) => {
+          const newProfile = payload.new as Profile;
+          if (newProfile && newProfile.id !== user.id) {
+            setAvailableProfiles((prev) => {
+              if (prev.some((p) => p.id === newProfile.id)) return prev;
+              return [newProfile, ...prev];
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  // Filter out users already chatted with, sorted in the order of most recently joined
+  const availableUsers = useMemo(() => {
+    return availableProfiles
+      .filter((prof) => !chattedUserIds.has(prof.id) && prof.id !== user?.id)
+      .sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+  }, [availableProfiles, chattedUserIds, user?.id]);
+
+  // If user is searching via search bar, filter available users matching query as well
+  const filteredAvailableUsers = useMemo(() => {
+    if (!searchQuery.trim()) return availableUsers;
     const q = searchQuery.toLowerCase();
-    const title =
-      c.type === 'direct'
-        ? c.otherParticipant?.display_name?.toLowerCase() || ''
-        : c.name?.toLowerCase() || '';
+    return availableUsers.filter(
+      (u) =>
+        (u.display_name && u.display_name.toLowerCase().includes(q)) ||
+        (u.username && u.username.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q))
+    );
+  }, [availableUsers, searchQuery]);
 
-    const lastMsg = c.lastDecryptedMessage?.plaintext?.toLowerCase() || '';
-    return title.includes(q) || lastMsg.includes(q);
-  });
+  const handleStartChatWithNewUser = async (targetUser: Profile) => {
+    if (startingChatUserId) return;
+    try {
+      setStartingChatUserId(targetUser.id);
+      if (onSelectUserForChat) {
+        await onSelectUserForChat(targetUser);
+      }
+    } catch (err) {
+      console.error('Failed to start chat with user:', err);
+    } finally {
+      setStartingChatUserId(null);
+    }
+  };
+
+  // Filter conversation list based on active pill and search query
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conv) => {
+      if (filterType === 'archived') {
+        if (!conv.is_archived) return false;
+      } else {
+        if (conv.is_archived) return false;
+      }
+
+      if (filterType === 'unread') {
+        if (conv.unreadCount === 0) return false;
+      } else if (filterType === 'groups') {
+        if (conv.type !== 'group') return false;
+      }
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const title =
+          conv.type === 'direct'
+            ? conv.otherParticipant?.display_name || ''
+            : conv.name || '';
+        const snippet = conv.lastDecryptedMessage?.plaintext || '';
+        return (
+          title.toLowerCase().includes(query) ||
+          snippet.toLowerCase().includes(query)
+        );
+      }
+
+      return true;
+    });
+  }, [conversations, filterType, searchQuery]);
 
   return (
-    <aside className="w-full md:w-[380px] lg:w-[420px] h-full flex flex-col bg-white dark:bg-[#111b21] border-r border-[#e9edef] dark:border-[#222d34] select-none">
-      {/* Top Header */}
-      <header className="h-16 px-4 bg-[#f0f2f5] dark:bg-[#202c33] flex items-center justify-between z-10 shrink-0">
-        {/* User profile avatar trigger */}
-        <button
+    <aside className="w-full md:w-[380px] lg:w-[420px] h-full flex flex-col border-r border-[#e9edef] dark:border-[#222d34] bg-white dark:bg-[#111b21] select-none shrink-0">
+      {/* Top Header / Profile Bar */}
+      <div className="h-16 px-4 bg-[#f0f2f5] dark:bg-[#202c33] flex items-center justify-between shrink-0">
+        {/* User Profile Info Clickable */}
+        <div
           onClick={onOpenProfile}
-          className="flex items-center gap-2.5 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
-          title="Profile & E2EE Settings"
+          className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity"
+          title="Edit Profile"
         >
-          <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#dfe5e7] dark:bg-[#374248] flex items-center justify-center border border-[#00A884]">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#dfe5e7] dark:bg-[#374248] flex items-center justify-center">
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -144,57 +305,55 @@ export function Sidebar({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-sm font-bold text-[#8696a0]">
-                {profile?.display_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              <span className="text-base font-bold text-[#54656f] dark:text-[#aebac1]">
+                {(profile?.display_name || user?.email || 'U').charAt(0).toUpperCase()}
               </span>
             )}
           </div>
-          <div className="hidden sm:block text-left min-w-0 max-w-[120px]">
-            <p className="text-xs font-semibold text-[#111b21] dark:text-[#e9edef] truncate">
-              {profile?.display_name || 'My Account'}
-            </p>
-            <p className="text-[10px] text-[#00A884] flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" />
-              <span>E2EE Active</span>
-            </p>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-[#111b21] dark:text-[#e9edef] leading-tight max-w-[140px] truncate">
+              {profile?.display_name || user?.email?.split('@')[0] || 'My Profile'}
+            </span>
+            <span className="text-[11px] text-[#00A884] font-medium flex items-center gap-1">
+          
+            </span>
           </div>
-        </button>
+        </div>
 
-        {/* Action Buttons */}
+        {/* Action Icons */}
         <div className="flex items-center gap-1 text-[#54656f] dark:text-[#aebac1]">
-          {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* New Group */}
           <button
             onClick={onOpenNewGroup}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             title="New Group"
+            aria-label="New Group"
           >
             <Users className="w-5 h-5" />
           </button>
 
-          {/* New Direct Chat */}
           <button
             onClick={onOpenNewChat}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             title="New Chat"
+            aria-label="New Chat"
           >
             <MessageSquarePlus className="w-5 h-5" />
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Search Bar & Filter Tabs */}
-      <div className="p-2.5 space-y-2 border-b border-[#e9edef] dark:border-[#222d34] bg-white dark:bg-[#111b21] shrink-0">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8696a0]" />
+      {/* Search & Filter Bar */}
+      <div className="p-3 bg-white dark:bg-[#111b21] border-b border-[#e9edef] dark:border-[#222d34] flex flex-col gap-2 shrink-0">
+        <div className="relative flex items-center">
+          <Search className="w-4 h-4 text-[#54656f] dark:text-[#8696a0] absolute left-3.5 pointer-events-none" />
           <input
             type="text"
+            placeholder="Search or start new chat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search or start new chat"
-            className="w-full h-9 pl-10 pr-4 text-xs rounded-lg bg-[#f0f2f5] dark:bg-[#202c33] border border-transparent focus:border-[#00A884] focus:outline-hidden text-[#111b21] dark:text-[#e9edef] placeholder-[#8696a0] transition-colors"
+            className="w-full h-9 pl-10 pr-4 text-xs rounded-lg bg-[#f0f2f5] dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] placeholder-[#54656f] dark:placeholder-[#8696a0] border-none focus:outline-hidden focus:ring-1 focus:ring-[#00A884] transition-all"
           />
         </div>
 
@@ -267,17 +426,26 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Conversation List */}
+      {/* Main Scrollable Content: Recent Chats followed by Available New Users */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#e9edef]/60 dark:divide-[#222d34]/60">
+        {/* 1. Conversations List */}
         {filteredConversations.length === 0 ? (
-          <div className="py-16 px-4 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-[#f0f2f5] dark:bg-[#202c33] flex items-center justify-center mx-auto text-[#8696a0]">
-              <Filter className="w-6 h-6" />
+          filteredAvailableUsers.length > 0 && filterType === 'all' && !searchQuery ? (
+            <div className="py-4 px-4 text-center">
+              <p className="text-xs text-[#8696a0]">
+                No conversations yet. Choose a user below to start chatting:
+              </p>
             </div>
-            <p className="text-xs text-[#8696a0]">
-              {searchQuery ? 'No chats match your search.' : 'No conversations yet. Tap + to start chatting!'}
-            </p>
-          </div>
+          ) : (
+            <div className="py-12 px-4 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#f0f2f5] dark:bg-[#202c33] flex items-center justify-center mx-auto text-[#8696a0]">
+                <Filter className="w-6 h-6" />
+              </div>
+              <p className="text-xs text-[#8696a0]">
+                {searchQuery ? 'No chats match your search.' : 'No active conversations yet.'}
+              </p>
+            </div>
+          )
         ) : (
           filteredConversations.map((conv, index) => {
             const isActive = activeConversation?.id === conv.id;
@@ -441,6 +609,95 @@ export function Sidebar({
               </div>
             );
           })
+        )}
+
+        {/* 2. Available New Users to Chat With (Sorted by most recently joined) */}
+        {/* Only shown if available users exist (> 0) on the all chats view */}
+        {filterType === 'all' && filteredAvailableUsers.length > 0 && (
+          <div className="pt-2">
+            {/* Sticky Section Header */}
+            <div className="px-4 py-2 bg-[#f0f2f5]/90 dark:bg-[#182229]/90 border-y border-[#e9edef] dark:border-[#222d34] flex items-center justify-between sticky top-0 z-10 backdrop-blur-xs select-none">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#00A884]" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#54656f] dark:text-[#8696a0]">
+                  New Users to Chat With
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00A884]/15 text-[#00A884] font-semibold">
+                {filteredAvailableUsers.length} available
+              </span>
+            </div>
+
+            {/* Available Users List: Name, Pic, Joined_at */}
+            <div className="divide-y divide-[#e9edef]/50 dark:divide-[#222d34]/50">
+              {filteredAvailableUsers.map((targetUser) => {
+                const isSelected = startingChatUserId === targetUser.id;
+                const isOnline = presenceMap[targetUser.id]?.isOnline || targetUser.is_online;
+                const title =
+                  targetUser.display_name ||
+                  targetUser.username ||
+                  targetUser.email?.split('@')[0] ||
+                  'User';
+
+                return (
+                  <div
+                    key={targetUser.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Start chat with ${title}`}
+                    onClick={() => handleStartChatWithNewUser(targetUser)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleStartChatWithNewUser(targetUser);
+                      }
+                    }}
+                    className="group flex items-center gap-3.5 px-4 py-3 hover:bg-[#f5f6f6] dark:hover:bg-[#202c33]/70 transition-colors cursor-pointer outline-none focus-visible:bg-[#f5f6f6] dark:focus-visible:bg-[#202c33]"
+                  >
+                    {/* Pic with Online Indicator */}
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#dfe5e7] dark:bg-[#374248] flex items-center justify-center shrink-0">
+                      {targetUser.avatar_url ? (
+                        <img
+                          src={targetUser.avatar_url}
+                          alt={title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-base font-bold text-[#8696a0]">
+                          {title.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      {isOnline && (
+                        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-[#00A884] border-2 border-white dark:border-[#111b21]" />
+                      )}
+                    </div>
+
+                    {/* Name & Joined_at */}
+                    <div className="flex-1 min-w-0 pr-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-[#111b21] dark:text-[#e9edef] truncate">
+                          {title}
+                        </h4>
+                        {isSelected ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00A884] shrink-0" />
+                        ) : (
+                          <span className="text-[10px] font-medium text-[#00A884] bg-[#00A884]/10 dark:bg-[#00A884]/20 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-[#00A884] group-hover:text-white transition-colors flex items-center gap-1">
+                            <MessageSquarePlus className="w-3 h-3" />
+                            <span>Chat</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-xs text-[#667781] dark:text-[#8696a0] truncate mt-0.5">
+                        <Clock className="w-3 h-3 shrink-0 opacity-70" />
+                        <span className="truncate">{formatJoinedDate(targetUser.created_at)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
