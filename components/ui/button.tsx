@@ -19,9 +19,9 @@ const buttonVariants = cva(
         google:
           "bg-white text-[#171717] border border-[#F1E8EB] hover:border-[#66CCF2]/60 hover:bg-[#FBF9FA] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.06)]",
         outline:
-          "border border-[#F1E8EB] bg-transparent text-[#171717] hover:bg-[#FBF9FA] hover:border-[#d9ccd1]",
+          "border border-[#F1E8EB] bg-transparent text-[#171717] hover:bg-[#F5F6F6] hover:border-[#d9ccd1] dark:border-[#222D34] dark:text-[#E9EDEF] dark:hover:bg-[#202C33] dark:hover:border-[#374248] dark:hover:text-white",
         ghost:
-          "text-[#171717] hover:bg-[#FBF9FA] hover:text-[#171717]",
+          "text-[#171717] hover:bg-[#F5F6F6] hover:text-[#171717] dark:text-[#E9EDEF] dark:hover:bg-[#202C33] dark:hover:text-white",
         subtle:
           "bg-[#66CCF2]/10 text-[#09739a] hover:bg-[#66CCF2]/20 font-medium",
         subtleOrange:

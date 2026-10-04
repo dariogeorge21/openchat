@@ -23,14 +23,15 @@ export default function TermsPage() {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/">
+            <Link href="/" className="inline-flex">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-[10px] text-xs h-9 px-3 gap-1.5 border-[#F1E8EB] dark:border-[#222D34]"
+                className="rounded-[10px] text-xs h-9 px-2.5 sm:px-3 gap-1.5 text-[#111B21] dark:text-[#E9EDEF] border-[#E9EDEF] dark:border-[#222D34] bg-white/60 dark:bg-[#111B21]/60 hover:bg-[#F5F6F6] dark:hover:bg-[#202C33] hover:text-[#00A884] dark:hover:text-[#00A884] hover:border-[#00A884]/30 dark:hover:border-[#00A884]/40 transition-all shadow-xs"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Home</span>
+                <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Home</span>
               </Button>
             </Link>
 
