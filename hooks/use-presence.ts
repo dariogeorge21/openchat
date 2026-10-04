@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/auth-context';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { formatLastActive } from '@/lib/utils';
 
 export interface PresenceInfo {
   userId: string;
@@ -120,41 +121,38 @@ export function usePresence() {
     };
   }, [user, supabase]);
 
+  // Periodic ticker to refresh relative "last seen" timestamps automatically
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((t) => (t + 1) % 1_000_000);
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const getPresence = useCallback(
-    (userId: string | undefined): { isOnline: boolean; statusText: string } => {
+    (
+      userId: string | undefined,
+      fallbackLastSeen?: string | null
+    ): { isOnline: boolean; statusText: string } => {
       if (!userId) return { isOnline: false, statusText: 'Offline' };
       const info = presenceMap[userId];
-      if (!info) return { isOnline: false, statusText: 'Offline' };
 
-      if (info.isOnline) {
+      if (info?.isOnline) {
         return { isOnline: true, statusText: 'Online' };
       }
 
-      if (!info.lastSeen) {
+      const lastSeenTime = info?.lastSeen || fallbackLastSeen;
+      if (!lastSeenTime) {
         return { isOnline: false, statusText: 'Offline' };
-      }
-
-      const diffMs = Date.now() - new Date(info.lastSeen).getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-
-      if (diffMins < 1) return { isOnline: false, statusText: 'Last seen just now' };
-      if (diffMins < 60) return { isOnline: false, statusText: `Last seen ${diffMins}m ago` };
-      
-      const lastDate = new Date(info.lastSeen);
-      const hours = lastDate.getHours().toString().padStart(2, '0');
-      const mins = lastDate.getMinutes().toString().padStart(2, '0');
-      
-      const isToday = new Date().toDateString() === lastDate.toDateString();
-      if (isToday) {
-        return { isOnline: false, statusText: `Last seen today at ${hours}:${mins}` };
       }
 
       return {
         isOnline: false,
-        statusText: `Last seen ${lastDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${hours}:${mins}`,
+        statusText: formatLastActive(lastSeenTime),
       };
     },
-    [presenceMap]
+    [presenceMap, tick]
   );
 
   return { presenceMap, getPresence };

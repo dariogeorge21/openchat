@@ -7,6 +7,7 @@ import { useTyping } from '@/hooks/use-typing';
 import { MessageList } from './message-list';
 import { MessageInput } from './message-input';
 import { ClearChatModal } from './clear-chat-modal';
+import { formatLastActive } from '@/lib/utils';
 import {
   ArrowLeft,
   ShieldCheck,
@@ -92,9 +93,15 @@ export function ChatArea({
   const subtitle = (() => {
     if (typingText) return <span className="text-[#00A884] font-medium animate-pulse">{typingText}</span>;
     if (conversation.type === 'direct') {
+      const displayStatus = isPeerOnline
+        ? 'Online'
+        : presenceText && presenceText !== 'Offline'
+        ? presenceText
+        : formatLastActive(conversation.otherParticipant?.last_seen);
+
       return (
         <span className={isPeerOnline ? 'text-[#00A884] font-medium' : 'text-[#667781] dark:text-[#8696a0]'}>
-          {presenceText || 'Offline'}
+          {displayStatus}
         </span>
       );
     }

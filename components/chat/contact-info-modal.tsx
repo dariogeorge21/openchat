@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Profile } from '@/types/database';
+import { formatLastActive } from '@/lib/utils';
 import {
   Mail,
   Copy,
@@ -147,7 +148,9 @@ export function ContactInfoModal({
                   </span>
                 ) : (
                   <span className="text-xs text-[#667781] dark:text-[#8696a0]">
-                    {presenceText || 'Offline'}
+                    {presenceText && presenceText !== 'Offline'
+                      ? presenceText
+                      : formatLastActive(contact.last_seen)}
                   </span>
                 )}
               </div>

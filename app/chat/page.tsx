@@ -115,7 +115,10 @@ export default function ChatDashboardPage() {
   // Resolve peer presence for active conversation if direct
   const peerPresence =
     activeConversation?.type === 'direct' && activeConversation.otherParticipant
-      ? getPresence(activeConversation.otherParticipant.id)
+      ? getPresence(
+          activeConversation.otherParticipant.id,
+          activeConversation.otherParticipant.last_seen
+        )
       : null;
 
   return (
