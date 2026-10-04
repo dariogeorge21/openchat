@@ -39,7 +39,7 @@ export default function AboutPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-[10px] text-xs h-9 px-3 gap-1.5 border-[#F1E8EB] dark:border-[#222D34]"
+                className="rounded-[10px] text-xs h-9 px-3 gap-1.5 text-black dark:text-white border-[#F1E8EB] dark:border-[#222D34]"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back to Home</span>
