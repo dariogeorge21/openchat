@@ -112,7 +112,7 @@ export function ChatArea({
         {/* Right Header Actions */}
         <div className="flex items-center gap-1.5 text-[#54656f] dark:text-[#8696a0]">
           {/* E2EE Lock Badge */}
-          <div className="relative">
+          {/* <div className="relative">
             <button
               onClick={() => setShowSecurityTooltip(!showSecurityTooltip)}
               className="flex items-center gap-1 text-[11px] font-medium bg-white/70 dark:bg-[#111b21]/70 px-2.5 py-1 rounded-full border border-[#e9edef] dark:border-[#2a3942] text-[#00A884] hover:bg-white dark:hover:bg-[#111b21] transition-colors cursor-pointer"
@@ -132,10 +132,10 @@ export function ChatArea({
                 </p>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Info Details Trigger */}
-          {onOpenDetails && (
+          {/* {onOpenDetails && (
             <button
               onClick={onOpenDetails}
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[#54656f] dark:text-[#aebac1] hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
@@ -147,7 +147,7 @@ export function ChatArea({
                 <MoreVertical className="w-5 h-5" />
               )}
             </button>
-          )}
+          )} */}
         </div>
       </header>
 
