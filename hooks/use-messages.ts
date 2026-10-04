@@ -303,7 +303,7 @@ export function useMessages({
 
       setMessages(decryptedList);
 
-      // Mark unread messages sent by others as 'seen'
+      // Mark unread messages sent by others as 'seen' and update last_read_at
       const unreadFromOthers = dbMessages.filter(
         (m) => m.sender_id !== user.id && m.status !== 'seen'
       );
@@ -315,6 +315,12 @@ export function useMessages({
           .update({ status: 'seen' })
           .in('id', unreadIds);
       }
+
+      await supabase
+        .from('conversation_members')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id);
     } catch (err: unknown) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'Failed to load messages');
@@ -389,6 +395,12 @@ export function useMessages({
                 .from('messages')
                 .update({ status: 'seen' })
                 .eq('id', newDbMsg.id);
+
+              await supabase
+                .from('conversation_members')
+                .update({ last_read_at: new Date().toISOString() })
+                .eq('conversation_id', conversationId)
+                .eq('user_id', user.id);
             }
           }
         }

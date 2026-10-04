@@ -271,7 +271,7 @@ export function Sidebar({
                     </div>
 
                     {/* Unread Pill Badge */}
-                    {conv.unreadCount > 0 && (
+                    {conv.unreadCount > 0 && !isActive && (
                       <span className="px-1.5 py-0.5 rounded-full bg-[#00A884] text-white text-[10px] font-bold shrink-0">
                         {conv.unreadCount}
                       </span>

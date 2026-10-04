@@ -26,8 +26,13 @@ export function useConversations() {
 
   const [conversations, setConversations] = useState<UIConversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<UIConversation | null>(null);
+  const activeConversationIdRef = useRef<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversation?.id || null;
+  }, [activeConversation?.id]);
 
   // Helper: decrypt the latest message for preview in sidebar
   const decryptLastMessage = useCallback(
@@ -236,14 +241,30 @@ export function useConversations() {
           // Compute unread count
           const userMemberRecord = members.find((m) => m.user_id === user.id);
           let unreadCount = 0;
-          if (userMemberRecord?.last_read_at) {
+          if (activeConversationIdRef.current === conv.id) {
+            unreadCount = 0;
+          } else if (conv.type === 'direct') {
             const { count } = await supabase
               .from('messages')
               .select('*', { count: 'exact', head: true })
               .eq('conversation_id', conv.id)
               .neq('sender_id', user.id)
-              .gt('created_at', userMemberRecord.last_read_at);
+              .neq('status', 'seen');
 
+            unreadCount = count || 0;
+          } else {
+            let query = supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('conversation_id', conv.id)
+              .neq('sender_id', user.id)
+              .neq('status', 'seen');
+
+            if (userMemberRecord?.last_read_at) {
+              query = query.gt('created_at', userMemberRecord.last_read_at);
+            }
+
+            const { count } = await query;
             unreadCount = count || 0;
           }
 
@@ -263,7 +284,10 @@ export function useConversations() {
       setActiveConversation((current) => {
         if (!current) return null;
         const updated = processed.find((p) => p.id === current.id);
-        return updated || current;
+        if (updated) {
+          return { ...updated, unreadCount: 0 };
+        }
+        return current;
       });
 
       return processed;
@@ -283,27 +307,37 @@ export function useConversations() {
   useEffect(() => {
     if (!user) return;
 
+    let debounceTimer: NodeJS.Timeout | null = null;
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchConversations();
+      }, 300);
+    };
+
     const channel = supabase
       .channel('openchat:conversations_global')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'conversations' },
-        () => {
-          fetchConversations();
-        }
+        debouncedFetch
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'conversation_members' },
-        () => {
-          fetchConversations();
-        }
+        debouncedFetch
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        debouncedFetch
       )
       .subscribe();
 
     channelRef.current = channel;
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
@@ -740,10 +774,81 @@ export function useConversations() {
     [user, supabase, fetchConversations]
   );
 
+  // Mark a conversation as read in client state & database
+  const markConversationAsRead = useCallback(
+    async (convId: string) => {
+      if (!user || !convId) return;
+
+      // 1. Instantly clear unread count in client state
+      setConversations((prev) =>
+        prev.map((c) => (c.id === convId ? { ...c, unreadCount: 0 } : c))
+      );
+      setActiveConversation((prev) =>
+        prev?.id === convId ? { ...prev, unreadCount: 0 } : prev
+      );
+
+      const now = new Date().toISOString();
+      try {
+        // 2. Update conversation_members last_read_at in database
+        await supabase
+          .from('conversation_members')
+          .update({ last_read_at: now })
+          .eq('conversation_id', convId)
+          .eq('user_id', user.id);
+
+        // 3. Update any messages sent by others in this conversation to 'seen'
+        await supabase
+          .from('messages')
+          .update({ status: 'seen' })
+          .eq('conversation_id', convId)
+          .neq('sender_id', user.id)
+          .neq('status', 'seen');
+      } catch (err) {
+        console.warn('Failed to mark conversation as read:', err);
+      }
+    },
+    [user, supabase]
+  );
+
+  // Wrapper for selecting active conversation that automatically marks it as read
+  const selectActiveConversation = useCallback(
+    (convOrUpdater: UIConversation | null | ((prev: UIConversation | null) => UIConversation | null)) => {
+      if (typeof convOrUpdater === 'function') {
+        setActiveConversation((prev) => {
+          const next = convOrUpdater(prev);
+          if (next) {
+            activeConversationIdRef.current = next.id;
+            markConversationAsRead(next.id);
+            return { ...next, unreadCount: 0 };
+          } else {
+            activeConversationIdRef.current = null;
+            return null;
+          }
+        });
+      } else {
+        const conv = convOrUpdater;
+        if (!conv) {
+          activeConversationIdRef.current = null;
+          setActiveConversation(null);
+          return;
+        }
+        activeConversationIdRef.current = conv.id;
+        const updated = { ...conv, unreadCount: 0 };
+        setActiveConversation(updated);
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conv.id ? { ...c, unreadCount: 0 } : c))
+        );
+        markConversationAsRead(conv.id);
+      }
+    },
+    [markConversationAsRead]
+  );
+
   return {
     conversations,
     activeConversation,
-    setActiveConversation,
+    setActiveConversation: selectActiveConversation,
+    markConversationAsRead,
     loading,
     refreshConversations: fetchConversations,
     createDirectConversation,
