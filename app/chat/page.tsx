@@ -24,6 +24,7 @@ export default function ChatDashboardPage() {
     activeConversation,
     setActiveConversation,
     loading: convsLoading,
+    clearChat,
     createDirectConversation,
     createGroupConversation,
     addMemberToGroup,
@@ -39,6 +40,14 @@ export default function ChatDashboardPage() {
   const [newGroupOpen, setNewGroupOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [groupDetailsOpen, setGroupDetailsOpen] = useState(false);
+  const [chatClearKey, setChatClearKey] = useState(0);
+
+  const handleClearChat = async (convId: string) => {
+    await clearChat(convId);
+    if (activeConversation?.id === convId) {
+      setChatClearKey((k) => k + 1);
+    }
+  };
 
   // Authentication guard
   useEffect(() => {
@@ -120,6 +129,7 @@ export default function ChatDashboardPage() {
           onOpenNewGroup={() => setNewGroupOpen(true)}
           onOpenProfile={() => setProfileOpen(true)}
           presenceMap={presenceMap}
+          onClearChat={handleClearChat}
         />
       </div>
 
@@ -131,6 +141,7 @@ export default function ChatDashboardPage() {
       >
         {activeConversation ? (
           <ChatArea
+            key={`${activeConversation.id}-${chatClearKey}`}
             conversation={activeConversation}
             onBack={() => setActiveConversation(null)}
             onOpenDetails={() => {
@@ -142,6 +153,7 @@ export default function ChatDashboardPage() {
             }}
             presenceText={peerPresence?.statusText}
             isPeerOnline={peerPresence?.isOnline}
+            onClearChat={handleClearChat}
           />
         ) : (
           <EmptyState onStartChat={() => setNewChatOpen(true)} />

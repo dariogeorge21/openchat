@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UIConversation } from '@/types/chat';
 import { useAuth } from '@/contexts/auth-context';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { ClearChatModal } from './clear-chat-modal';
 import {
   MessageSquarePlus,
   Users,
@@ -12,6 +13,8 @@ import {
   CheckCheck,
   ShieldCheck,
   Filter,
+  MoreVertical,
+  Trash2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,6 +25,7 @@ interface SidebarProps {
   onOpenNewGroup: () => void;
   onOpenProfile: () => void;
   presenceMap: Record<string, { isOnline: boolean; lastSeen: string }>;
+  onClearChat?: (convId: string) => Promise<void>;
 }
 
 function formatConversationTime(dateString: string): string {
@@ -50,10 +54,41 @@ export function Sidebar({
   onOpenNewGroup,
   onOpenProfile,
   presenceMap,
+  onClearChat,
 }: SidebarProps) {
   const { user, profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
+  const [openMenuConvId, setOpenMenuConvId] = useState<string | null>(null);
+  const [confirmClearConv, setConfirmClearConv] = useState<UIConversation | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
+  const sidebarMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMenuConvId) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (sidebarMenuRef.current && !sidebarMenuRef.current.contains(e.target as Node)) {
+        setOpenMenuConvId(null);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenMenuConvId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openMenuConvId]);
 
   const filteredConversations = conversations.filter((c) => {
     // Filter by type
@@ -191,7 +226,7 @@ export function Sidebar({
             </p>
           </div>
         ) : (
-          filteredConversations.map((conv) => {
+          filteredConversations.map((conv, index) => {
             const isActive = activeConversation?.id === conv.id;
             const title =
               conv.type === 'direct'
@@ -215,7 +250,7 @@ export function Sidebar({
               <div
                 key={conv.id}
                 onClick={() => onSelectConversation(conv)}
-                className={`flex items-center gap-3.5 px-4 py-3 cursor-pointer transition-colors ${
+                className={`group relative flex items-center gap-3.5 px-4 py-3 cursor-pointer transition-colors ${
                   isActive
                     ? 'bg-[#f0f2f5] dark:bg-[#2a3942]'
                     : 'hover:bg-[#f5f6f6] dark:hover:bg-[#202c33]/70'
@@ -278,11 +313,85 @@ export function Sidebar({
                     )}
                   </div>
                 </div>
+
+                {/* 3-dots Menu Button */}
+                <div className="relative shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuConvId(openMenuConvId === conv.id ? null : conv.id);
+                    }}
+                    className={`p-1.5 rounded-full text-[#54656f] dark:text-[#8696a0] hover:text-[#111b21] dark:hover:text-[#e9edef] hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer ${
+                      openMenuConvId === conv.id
+                        ? 'opacity-100 bg-black/10 dark:bg-white/10'
+                        : 'opacity-70 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100'
+                    }`}
+                    title="Chat options"
+                    aria-label="Chat options"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+
+                  {openMenuConvId === conv.id && (
+                    <div
+                      ref={sidebarMenuRef}
+                      className={`absolute right-0 ${
+                        index >= filteredConversations.length - 2 && filteredConversations.length > 2
+                          ? 'bottom-full mb-1'
+                          : 'top-full mt-1'
+                      } w-40 py-1 bg-white dark:bg-[#233138] border border-[#e9edef] dark:border-[#2a3942] rounded-xl shadow-2xl z-50 animate-in fade-in-50 zoom-in-95 text-xs font-normal`}
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuConvId(null);
+                          setConfirmClearConv(conv);
+                        }}
+                        className="w-full px-3.5 py-2 text-left flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                        <span>Clear chat</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })
         )}
       </div>
+
+      {/* Clear Chat Confirmation Modal */}
+      <ClearChatModal
+        open={!!confirmClearConv}
+        onOpenChange={(open) => {
+          if (!open) setConfirmClearConv(null);
+        }}
+        conversationName={
+          confirmClearConv
+            ? confirmClearConv.type === 'direct'
+              ? confirmClearConv.otherParticipant?.display_name || 'Direct Chat'
+              : confirmClearConv.name || 'Group Chat'
+            : undefined
+        }
+        isClearing={isClearing}
+        onConfirm={async () => {
+          if (!confirmClearConv) return;
+          try {
+            setIsClearing(true);
+            if (onClearChat) {
+              await onClearChat(confirmClearConv.id);
+            }
+          } catch (err) {
+            console.error('Failed to clear chat from sidebar:', err);
+          } finally {
+            setIsClearing(false);
+            setConfirmClearConv(null);
+          }
+        }}
+      />
     </aside>
   );
 }

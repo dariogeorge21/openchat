@@ -420,6 +420,18 @@ export function useMessages({
           );
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          setMessages([]);
+        }
+      )
       .subscribe();
 
     return () => {
@@ -513,12 +525,17 @@ export function useMessages({
     [conversationId, user?.id, keyVersion, conversationType, resolveActiveKey, supabase]
   );
 
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+  }, []);
+
   return {
     messages,
     loading,
     sending,
     error,
     sendMessage,
+    clearMessages,
     reloadMessages: loadMessages,
   };
 }

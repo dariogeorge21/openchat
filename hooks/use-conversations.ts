@@ -844,11 +844,62 @@ export function useConversations() {
     [markConversationAsRead]
   );
 
+  // Clear all messages in a conversation (deletes from DB + client)
+  const clearChat = useCallback(
+    async (convId: string): Promise<void> => {
+      if (!user || !convId) return;
+
+      // 1. Optimistically clear client state immediately
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convId
+            ? { ...c, lastDecryptedMessage: null, unreadCount: 0 }
+            : c
+        )
+      );
+
+      setActiveConversation((prev) =>
+        prev?.id === convId
+          ? { ...prev, lastDecryptedMessage: null, unreadCount: 0 }
+          : prev
+      );
+
+      // 2. Delete messages from database (try RPC first, fallback to direct DELETE)
+      try {
+        const { error: rpcErr } = await supabase.rpc('clear_conversation_messages', {
+          p_conversation_id: convId,
+        });
+
+        if (rpcErr) {
+          const { error: delErr } = await supabase
+            .from('messages')
+            .delete()
+            .eq('conversation_id', convId);
+
+          if (delErr) {
+            console.warn('Direct delete messages fallback error:', delErr);
+          }
+        }
+
+        // Reset last_read_at for this member
+        await supabase
+          .from('conversation_members')
+          .update({ last_read_at: new Date().toISOString() })
+          .eq('conversation_id', convId)
+          .eq('user_id', user.id);
+      } catch (err) {
+        console.error('Failed to clear chat from database:', err);
+      }
+    },
+    [user, supabase]
+  );
+
   return {
     conversations,
     activeConversation,
     setActiveConversation: selectActiveConversation,
     markConversationAsRead,
+    clearChat,
     loading,
     refreshConversations: fetchConversations,
     createDirectConversation,

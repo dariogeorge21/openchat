@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UIConversation } from '@/types/chat';
 import { useMessages } from '@/hooks/use-messages';
 import { useTyping } from '@/hooks/use-typing';
 import { MessageList } from './message-list';
 import { MessageInput } from './message-input';
+import { ClearChatModal } from './clear-chat-modal';
 import {
   ArrowLeft,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
   Users,
   User,
   Info,
+  Trash2,
 } from 'lucide-react';
 
 interface ChatAreaProps {
@@ -21,6 +23,7 @@ interface ChatAreaProps {
   onOpenDetails?: () => void;
   presenceText?: string;
   isPeerOnline?: boolean;
+  onClearChat?: (convId: string) => Promise<void>;
 }
 
 export function ChatArea({
@@ -29,8 +32,9 @@ export function ChatArea({
   onOpenDetails,
   presenceText,
   isPeerOnline,
+  onClearChat,
 }: ChatAreaProps) {
-  const { messages, loading, sendMessage } = useMessages({
+  const { messages, loading, sendMessage, clearMessages } = useMessages({
     conversationId: conversation.id,
     conversationType: conversation.type,
     otherParticipant: conversation.otherParticipant,
@@ -39,6 +43,37 @@ export function ChatArea({
 
   const { typingText, sendTyping } = useTyping(conversation.id);
   const [showSecurityTooltip, setShowSecurityTooltip] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside or Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
 
   const title =
     conversation.type === 'direct'
@@ -111,43 +146,56 @@ export function ChatArea({
 
         {/* Right Header Actions */}
         <div className="flex items-center gap-1.5 text-[#54656f] dark:text-[#8696a0]">
-          {/* E2EE Lock Badge */}
-          {/* <div className="relative">
+          {/* 3-dots Menu Button */}
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setShowSecurityTooltip(!showSecurityTooltip)}
-              className="flex items-center gap-1 text-[11px] font-medium bg-white/70 dark:bg-[#111b21]/70 px-2.5 py-1 rounded-full border border-[#e9edef] dark:border-[#2a3942] text-[#00A884] hover:bg-white dark:hover:bg-[#111b21] transition-colors cursor-pointer"
-              title="End-to-End Encrypted Session"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[#54656f] dark:text-[#aebac1] hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
+              title="More options"
+              aria-label="More options"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">E2EE Active</span>
+              <MoreVertical className="w-5 h-5" />
             </button>
 
-            {showSecurityTooltip && (
-              <div className="absolute right-0 top-10 w-64 p-3 bg-white dark:bg-[#202c33] border border-[#e9edef] dark:border-[#2a3942] rounded-xl shadow-xl text-xs space-y-1.5 z-30 animate-in fade-in-50">
-                <p className="font-semibold text-[#111b21] dark:text-[#e9edef]">
-                  Zero-Knowledge Security
-                </p>
-                <p className="text-[#667781] dark:text-[#8696a0] leading-relaxed">
-                  Messages in this chat are encrypted using your browser&apos;s Web Crypto API primitives (ECDH P-256 + AES-GCM). Neither OpenChat nor Supabase can read your conversation.
-                </p>
+            {menuOpen && (
+              <div
+                className="absolute right-0 top-full mt-1.5 w-48 py-1.5 bg-white dark:bg-[#233138] border border-[#e9edef] dark:border-[#2a3942] rounded-xl shadow-xl z-50 animate-in fade-in-50 zoom-in-95 text-xs font-normal"
+              >
+                {onOpenDetails && (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenDetails();
+                    }}
+                    className="w-full px-4 py-2.5 text-left flex items-center gap-2.5 text-[#111b21] dark:text-[#d1d7db] hover:bg-[#f5f6f6] dark:hover:bg-[#182229] transition-colors cursor-pointer"
+                  >
+                    {conversation.type === 'group' ? (
+                      <>
+                        <Users className="w-4 h-4 text-[#8696a0]" />
+                        <span>Group info</span>
+                      </>
+                    ) : (
+                      <>
+                        <User className="w-4 h-4 text-[#8696a0]" />
+                        <span>Contact info</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setClearModalOpen(true);
+                  }}
+                  className="w-full px-4 py-2.5 text-left flex items-center gap-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <span>Clear chat</span>
+                </button>
               </div>
             )}
-          </div> */}
-
-          {/* Info Details Trigger */}
-          {/* {onOpenDetails && (
-            <button
-              onClick={onOpenDetails}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[#54656f] dark:text-[#aebac1] hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
-              title="Chat Details"
-            >
-              {conversation.type === 'group' ? (
-                <Info className="w-5 h-5" />
-              ) : (
-                <MoreVertical className="w-5 h-5" />
-              )}
-            </button>
-          )} */}
+          </div>
         </div>
       </header>
 
@@ -160,6 +208,27 @@ export function ChatArea({
 
       {/* Message Composer */}
       <MessageInput onSendMessage={sendMessage} onTyping={sendTyping} />
+
+      {/* Clear Chat Confirmation Modal */}
+      <ClearChatModal
+        open={clearModalOpen}
+        onOpenChange={setClearModalOpen}
+        conversationName={title}
+        isClearing={isClearing}
+        onConfirm={async () => {
+          try {
+            setIsClearing(true);
+            clearMessages();
+            if (onClearChat) {
+              await onClearChat(conversation.id);
+            }
+          } catch (err) {
+            console.error('Failed to clear chat:', err);
+          } finally {
+            setIsClearing(false);
+          }
+        }}
+      />
     </div>
   );
 }

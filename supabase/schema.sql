@@ -377,6 +377,12 @@ CREATE POLICY "Members can update message status"
   USING (public.is_conversation_member(conversation_id))
   WITH CHECK (public.is_conversation_member(conversation_id));
 
+-- Members can delete messages in conversations they are part of (Clear chat)
+CREATE POLICY "Members can delete messages"
+  ON public.messages FOR DELETE
+  TO authenticated
+  USING (public.is_conversation_member(conversation_id));
+
 -- MESSAGE RECEIPTS POLICIES
 -- Conversation members can read message receipts
 CREATE POLICY "Members can view message receipts"
@@ -458,3 +464,22 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.create_or_get_direct_conversation(UUID) TO authenticated;
+
+-- RPC: Clear all messages in a conversation
+CREATE OR REPLACE FUNCTION public.clear_conversation_messages(p_conversation_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  IF NOT public.is_conversation_member(p_conversation_id) THEN
+    RAISE EXCEPTION 'Not authorized to clear this conversation';
+  END IF;
+
+  DELETE FROM public.messages WHERE conversation_id = p_conversation_id;
+  UPDATE public.conversations SET last_message_at = NOW() WHERE id = p_conversation_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.clear_conversation_messages(UUID) TO authenticated;
