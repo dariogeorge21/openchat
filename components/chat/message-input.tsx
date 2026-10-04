@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Smile, Paperclip, Mic } from 'lucide-react';
+import { Send, Smile, Paperclip } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (text: string) => Promise<void>;
@@ -102,25 +102,15 @@ export function MessageInput({
           />
         </div>
 
-        {/* Send / Mic Button */}
-        {text.trim() ? (
-          <button
-            type="submit"
-            disabled={disabled}
-            className="p-2.5 rounded-full bg-[#00A884] hover:bg-[#008f6f] text-white shadow-sm transition-transform active:scale-95 cursor-pointer disabled:opacity-60"
-            title="Send Encrypted Message"
-          >
-            <Send className="w-4 h-4 ml-0.5" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="p-2 rounded-full text-[#54656f] dark:text-[#8696a0] hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
-            title="Voice message"
-          >
-            <Mic className="w-5 h-5" />
-          </button>
-        )}
+        {/* Send Button */}
+        <button
+          type="submit"
+          disabled={disabled || !text.trim()}
+          className="p-2.5 rounded-full bg-[#00A884] hover:bg-[#008f6f] text-white shadow-sm transition-transform active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          title="Send Encrypted Message"
+        >
+          <Send className="w-4 h-4 ml-0.5" />
+        </button>
       </form>
     </div>
   );
