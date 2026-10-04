@@ -15,6 +15,8 @@ import {
   User,
   Info,
   Trash2,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react';
 
 interface ChatAreaProps {
@@ -24,6 +26,7 @@ interface ChatAreaProps {
   presenceText?: string;
   isPeerOnline?: boolean;
   onClearChat?: (convId: string) => Promise<void>;
+  onArchiveChat?: (convId: string, archive?: boolean) => Promise<void>;
 }
 
 export function ChatArea({
@@ -33,6 +36,7 @@ export function ChatArea({
   presenceText,
   isPeerOnline,
   onClearChat,
+  onArchiveChat,
 }: ChatAreaProps) {
   const { messages, loading, sendMessage, clearMessages } = useMessages({
     conversationId: conversation.id,
@@ -137,9 +141,17 @@ export function ChatArea({
 
           {/* Title & Status */}
           <div onClick={onOpenDetails} className="min-w-0 cursor-pointer">
-            <h2 className="text-sm font-semibold text-[#111b21] dark:text-[#e9edef] truncate">
-              {title}
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-[#111b21] dark:text-[#e9edef] truncate">
+                {title}
+              </h2>
+              {conversation.is_archived && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-[#00A884]/15 dark:bg-[#00A884]/25 text-[#00A884] px-1.5 py-0.5 rounded-md shrink-0">
+                  <Archive className="w-3 h-3" />
+                  Archived
+                </span>
+              )}
+            </div>
             <p className="text-xs truncate">{subtitle}</p>
           </div>
         </div>
@@ -178,6 +190,28 @@ export function ChatArea({
                       <>
                         <User className="w-4 h-4 text-[#8696a0]" />
                         <span>Contact info</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {onArchiveChat && (
+                  <button
+                    onClick={async () => {
+                      setMenuOpen(false);
+                      await onArchiveChat(conversation.id, !conversation.is_archived);
+                    }}
+                    className="w-full px-4 py-2.5 text-left flex items-center gap-2.5 text-[#111b21] dark:text-[#d1d7db] hover:bg-[#f5f6f6] dark:hover:bg-[#182229] transition-colors cursor-pointer"
+                  >
+                    {conversation.is_archived ? (
+                      <>
+                        <ArchiveRestore className="w-4 h-4 text-[#00A884]" />
+                        <span>Unarchive chat</span>
+                      </>
+                    ) : (
+                      <>
+                        <Archive className="w-4 h-4 text-[#8696a0]" />
+                        <span>Archive chat</span>
                       </>
                     )}
                   </button>

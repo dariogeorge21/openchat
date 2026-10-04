@@ -153,17 +153,38 @@ export function useConversations() {
     }
 
     try {
-      // 1. Get user's conversation memberships
-      const { data: memberRows, error: memberErr } = await supabase
+      // 1. Get user's conversation memberships (with safe fallback if migration is pending)
+      let memberRows: { conversation_id: string; role: any; last_read_at: string; is_archived?: boolean }[] = [];
+      const { data: memberRowsWithArchived, error: memberErr1 } = await supabase
         .from('conversation_members')
-        .select('conversation_id, role, last_read_at')
+        .select('conversation_id, role, last_read_at, is_archived')
         .eq('user_id', user.id);
 
-      if (memberErr || !memberRows || memberRows.length === 0) {
+      if (!memberErr1 && memberRowsWithArchived) {
+        memberRows = memberRowsWithArchived as any;
+      } else {
+        const { data: fallbackRows, error: fallbackErr } = await supabase
+          .from('conversation_members')
+          .select('conversation_id, role, last_read_at')
+          .eq('user_id', user.id);
+
+        if (fallbackErr || !fallbackRows || fallbackRows.length === 0) {
+          setConversations([]);
+          setLoading(false);
+          return [];
+        }
+        memberRows = fallbackRows.map((r) => ({ ...r, is_archived: false }));
+      }
+
+      if (memberRows.length === 0) {
         setConversations([]);
         setLoading(false);
         return [];
       }
+
+      const isArchivedMap = new Map<string, boolean>(
+        memberRows.map((m) => [m.conversation_id, Boolean(m.is_archived)])
+      );
 
       const convIds = memberRows.map((m) => m.conversation_id);
 
@@ -274,6 +295,7 @@ export function useConversations() {
             members,
             lastDecryptedMessage: lastDecrypted,
             unreadCount,
+            is_archived: isArchivedMap.get(conv.id) ?? false,
           };
         })
       );
@@ -894,12 +916,63 @@ export function useConversations() {
     [user, supabase]
   );
 
+  // Archive or unarchive a conversation (persists to DB + optimistic client update)
+  const toggleArchiveChat = useCallback(
+    async (convId: string, archive?: boolean): Promise<void> => {
+      if (!user || !convId) return;
+
+      // Determine target state
+      let targetArchived: boolean;
+      if (archive !== undefined) {
+        targetArchived = archive;
+      } else {
+        const found = conversations.find((c) => c.id === convId);
+        targetArchived = !found?.is_archived;
+      }
+
+      // 1. Optimistic state update
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convId ? { ...c, is_archived: targetArchived } : c
+        )
+      );
+
+      setActiveConversation((prev) =>
+        prev?.id === convId ? { ...prev, is_archived: targetArchived } : prev
+      );
+
+      // 2. Persist to DB
+      try {
+        const { error: rpcErr } = await supabase.rpc('set_conversation_archived', {
+          p_conversation_id: convId,
+          p_archived: targetArchived,
+        });
+
+        if (rpcErr) {
+          const { error: updateErr } = await supabase
+            .from('conversation_members')
+            .update({ is_archived: targetArchived })
+            .eq('conversation_id', convId)
+            .eq('user_id', user.id);
+
+          if (updateErr) {
+            console.warn('Could not persist archive status to DB (migration pending):', updateErr);
+          }
+        }
+      } catch (err) {
+        console.warn('Archive error (migration pending):', err);
+      }
+    },
+    [user, supabase, conversations]
+  );
+
   return {
     conversations,
     activeConversation,
     setActiveConversation: selectActiveConversation,
     markConversationAsRead,
     clearChat,
+    toggleArchiveChat,
     loading,
     refreshConversations: fetchConversations,
     createDirectConversation,

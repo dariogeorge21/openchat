@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.conversation_members (
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   last_read_at TIMESTAMPTZ DEFAULT NOW(),
   last_read_message_id UUID,
+  is_archived BOOLEAN NOT NULL DEFAULT false,
   CONSTRAINT unique_conversation_member UNIQUE (conversation_id, user_id)
 );
 
@@ -130,6 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
 CREATE INDEX IF NOT EXISTS idx_profiles_display_name ON public.profiles(display_name);
 CREATE INDEX IF NOT EXISTS idx_conversation_members_user ON public.conversation_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversation_members_conv ON public.conversation_members(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_members_user_archived ON public.conversation_members(user_id, is_archived);
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_created ON public.messages(conversation_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_messages_sender ON public.messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_group_keys_lookup ON public.group_member_keys(group_id, key_version, user_id);
@@ -483,3 +485,23 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.clear_conversation_messages(UUID) TO authenticated;
+
+-- RPC: Archive or unarchive a conversation for the authenticated user
+CREATE OR REPLACE FUNCTION public.set_conversation_archived(
+  p_conversation_id UUID,
+  p_archived BOOLEAN
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  UPDATE public.conversation_members
+  SET is_archived = p_archived
+  WHERE conversation_id = p_conversation_id
+    AND user_id = auth.uid();
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.set_conversation_archived(UUID, BOOLEAN) TO authenticated;

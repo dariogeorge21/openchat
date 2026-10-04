@@ -25,6 +25,7 @@ export default function ChatDashboardPage() {
     setActiveConversation,
     loading: convsLoading,
     clearChat,
+    toggleArchiveChat,
     createDirectConversation,
     createGroupConversation,
     addMemberToGroup,
@@ -132,6 +133,7 @@ export default function ChatDashboardPage() {
           onOpenProfile={() => setProfileOpen(true)}
           presenceMap={presenceMap}
           onClearChat={handleClearChat}
+          onArchiveChat={toggleArchiveChat}
         />
       </div>
 
@@ -156,6 +158,7 @@ export default function ChatDashboardPage() {
             presenceText={peerPresence?.statusText}
             isPeerOnline={peerPresence?.isOnline}
             onClearChat={handleClearChat}
+            onArchiveChat={toggleArchiveChat}
           />
         ) : (
           <EmptyState onStartChat={() => setNewChatOpen(true)} />

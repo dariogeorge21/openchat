@@ -126,16 +126,6 @@ export function MessageInput({
           <Smile className="w-5 h-5" />
         </button>
 
-        {/* Attachment Button */}
-        <button
-          type="button"
-          className="p-2 rounded-full text-[#54656f] dark:text-[#8696a0] hover:text-[#111b21] dark:hover:text-[#e9edef] transition-colors cursor-pointer"
-          title="Attach"
-          onClick={() => alert('Attachments are encrypted client-side in the next media update.')}
-        >
-          <Paperclip className="w-5 h-5" />
-        </button>
-
         {/* Text Input */}
         <div className="flex-1 relative">
           <input

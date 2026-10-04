@@ -52,6 +52,7 @@ export interface ConversationMember {
   joined_at: string;
   last_read_at: string;
   last_read_message_id: string | null;
+  is_archived?: boolean;
   profile?: Profile;
 }
 

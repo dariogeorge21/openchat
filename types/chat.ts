@@ -6,6 +6,7 @@ export interface UIConversation extends Conversation {
   members?: (ConversationMember & { profile: Profile })[];
   lastDecryptedMessage?: DecryptedMessage | null;
   unreadCount: number;
+  is_archived?: boolean;
 }
 
 export interface UserPresence {

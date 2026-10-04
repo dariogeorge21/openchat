@@ -15,6 +15,9 @@ import {
   Filter,
   MoreVertical,
   Trash2,
+  Archive,
+  ArchiveRestore,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +29,7 @@ interface SidebarProps {
   onOpenProfile: () => void;
   presenceMap: Record<string, { isOnline: boolean; lastSeen: string }>;
   onClearChat?: (convId: string) => Promise<void>;
+  onArchiveChat?: (convId: string, archive?: boolean) => Promise<void>;
 }
 
 function formatConversationTime(dateString: string): string {
@@ -55,14 +59,23 @@ export function Sidebar({
   onOpenProfile,
   presenceMap,
   onClearChat,
+  onArchiveChat,
 }: SidebarProps) {
   const { user, profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'unread' | 'groups' | 'archived'>('all');
   const [openMenuConvId, setOpenMenuConvId] = useState<string | null>(null);
   const [confirmClearConv, setConfirmClearConv] = useState<UIConversation | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const sidebarMenuRef = useRef<HTMLDivElement>(null);
+
+  const archivedCount = conversations.filter((c) => Boolean(c.is_archived)).length;
+
+  useEffect(() => {
+    if (archivedCount === 0 && filterType === 'archived') {
+      setFilterType('all');
+    }
+  }, [archivedCount, filterType]);
 
   useEffect(() => {
     if (!openMenuConvId) return;
@@ -91,9 +104,14 @@ export function Sidebar({
   }, [openMenuConvId]);
 
   const filteredConversations = conversations.filter((c) => {
-    // Filter by type
-    if (filterType === 'unread' && c.unreadCount <= 0) return false;
-    if (filterType === 'groups' && c.type !== 'group') return false;
+    // Filter by archived status
+    if (filterType === 'archived') {
+      if (!c.is_archived) return false;
+    } else {
+      if (c.is_archived) return false;
+      if (filterType === 'unread' && c.unreadCount <= 0) return false;
+      if (filterType === 'groups' && c.type !== 'group') return false;
+    }
 
     // Filter by search query
     if (!searchQuery.trim()) return true;
@@ -212,7 +230,45 @@ export function Sidebar({
             Groups
           </button>
         </div>
+
+        {/* Archived Chats Option (Show only if a chat is archived - else do not show) */}
+        {archivedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setFilterType(filterType === 'archived' ? 'all' : 'archived')}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer mt-1 ${
+              filterType === 'archived'
+                ? 'bg-[#00A884]/15 dark:bg-[#00A884]/20 text-[#00A884]'
+                : 'bg-[#f0f2f5] dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] hover:bg-[#e9edef] dark:hover:bg-[#2a3942]'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Archive className="w-4 h-4 text-[#00A884]" />
+              <span>Archived</span>
+            </div>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#00A884] text-white">
+              {archivedCount}
+            </span>
+          </button>
+        )}
       </div>
+
+      {/* Archived View Header Banner */}
+      {filterType === 'archived' && (
+        <div className="flex items-center justify-between px-4 py-2 bg-[#f0f2f5] dark:bg-[#202c33] border-b border-[#e9edef] dark:border-[#222d34] shrink-0">
+          <button
+            type="button"
+            onClick={() => setFilterType('all')}
+            className="flex items-center gap-1.5 text-xs text-[#00A884] font-medium hover:underline cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to all chats</span>
+          </button>
+          <span className="text-xs text-[#667781] dark:text-[#8696a0]">
+            {filteredConversations.length} archived
+          </span>
+        </div>
+      )}
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#e9edef]/60 dark:divide-[#222d34]/60">
@@ -340,8 +396,32 @@ export function Sidebar({
                         index >= filteredConversations.length - 2 && filteredConversations.length > 2
                           ? 'bottom-full mb-1'
                           : 'top-full mt-1'
-                      } w-40 py-1 bg-white dark:bg-[#233138] border border-[#e9edef] dark:border-[#2a3942] rounded-xl shadow-2xl z-50 animate-in fade-in-50 zoom-in-95 text-xs font-normal`}
+                      } w-44 py-1 bg-white dark:bg-[#233138] border border-[#e9edef] dark:border-[#2a3942] rounded-xl shadow-2xl z-50 animate-in fade-in-50 zoom-in-95 text-xs font-normal`}
                     >
+                      {onArchiveChat && (
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            setOpenMenuConvId(null);
+                            await onArchiveChat(conv.id, !conv.is_archived);
+                          }}
+                          className="w-full px-3.5 py-2 text-left flex items-center gap-2 text-[#111b21] dark:text-[#d1d7db] hover:bg-[#f5f6f6] dark:hover:bg-[#182229] transition-colors cursor-pointer"
+                        >
+                          {conv.is_archived ? (
+                            <>
+                              <ArchiveRestore className="w-3.5 h-3.5 text-[#00A884]" />
+                              <span>Unarchive chat</span>
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="w-3.5 h-3.5 text-[#8696a0]" />
+                              <span>Archive chat</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={(e) => {
