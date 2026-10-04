@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DecryptedMessage } from '@/types/crypto';
 import { useAuth } from '@/contexts/auth-context';
-import { Check, CheckCheck, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, CheckCheck, Lock, AlertCircle } from 'lucide-react';
 
 interface MessageListProps {
   messages: DecryptedMessage[];
@@ -71,15 +71,6 @@ export function MessageList({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 chat-wallpaper-light dark:chat-wallpaper-dark">
-        <Loader2 className="w-6 h-6 animate-spin text-[#00A884]" />
-        <span className="text-xs text-[#8696a0]">Decrypting conversation...</span>
-      </div>
-    );
-  }
-
   // Group messages by date
   let lastDate = '';
 
@@ -97,7 +88,7 @@ export function MessageList({
         </div>
       </div>
 
-      {messages.length === 0 && (
+      {!loading && messages.length === 0 && (
         <div className="py-12 text-center text-xs text-[#8696a0]">
           No messages here yet. Send a message to start encrypted conversation.
         </div>

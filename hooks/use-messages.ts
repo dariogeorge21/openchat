@@ -32,14 +32,32 @@ export function useMessages({
   const [supabase] = useState(() => createClient());
 
   const [messages, setMessages] = useState<DecryptedMessage[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const activeKeyRef = useRef<CryptoKey | null>(null);
   const keyErrorRef = useRef<string | null>(null);
   const profilesCacheRef = useRef<Map<string, Profile>>(new Map());
+  const keysCacheRef = useRef<Map<string, CryptoKey>>(new Map());
+  const prevConversationIdRef = useRef<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  const otherParticipantId = otherParticipant?.id;
+  const otherParticipantRef = useRef(otherParticipant);
+  useEffect(() => {
+    otherParticipantRef.current = otherParticipant;
+  }, [otherParticipant]);
+
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  const keyPairRef = useRef(keyPair);
+  useEffect(() => {
+    keyPairRef.current = keyPair;
+  }, [keyPair]);
 
   // Helper to fetch and cache profile for sender details
   const getSenderProfile = useCallback(
@@ -68,16 +86,32 @@ export function useMessages({
 
   // Initialize active encryption key (Pairwise ECDH for Direct, or Unwrapped Group Key)
   const resolveActiveKey = useCallback(async (): Promise<CryptoKey | null> => {
-    if (!user) return null;
-    if (!keyPair) {
+    const currentUser = userRef.current || user;
+    const currentKeyPair = keyPairRef.current || keyPair;
+
+    if (!currentUser) return null;
+    if (!currentKeyPair) {
       keyErrorRef.current = 'Cryptographic keys are still initializing. Please wait a moment.';
       return null;
     }
     if (!conversationId) return null;
 
+    // Check memory cache first
+    const cacheKey =
+      conversationType === 'direct'
+        ? `direct:${conversationId}:${otherParticipantId || 'peer'}`
+        : `group:${conversationId}:${keyVersion}`;
+
+    if (keysCacheRef.current.has(cacheKey)) {
+      const cached = keysCacheRef.current.get(cacheKey)!;
+      activeKeyRef.current = cached;
+      keyErrorRef.current = null;
+      return cached;
+    }
+
     try {
       if (conversationType === 'direct') {
-        let peer = otherParticipant;
+        let peer = otherParticipantRef.current || otherParticipant;
 
         // Fallback: If otherParticipant is not populated yet, look up peer directly from conversation_members
         if (!peer) {
@@ -85,7 +119,7 @@ export function useMessages({
             .from('conversation_members')
             .select('user_id')
             .eq('conversation_id', conversationId)
-            .neq('user_id', user.id)
+            .neq('user_id', currentUser.id)
             .maybeSingle();
 
           if (memberRec?.user_id) {
@@ -119,11 +153,12 @@ export function useMessages({
         }
 
         const pairwiseKey = await derivePairwiseKey(
-          keyPair.privateKeyJwk,
+          currentKeyPair.privateKeyJwk,
           peerKeyRecord.public_key as JsonWebKey,
           peer.id
         );
 
+        keysCacheRef.current.set(cacheKey, pairwiseKey);
         activeKeyRef.current = pairwiseKey;
         keyErrorRef.current = null;
         return pairwiseKey;
@@ -134,7 +169,7 @@ export function useMessages({
           .select('*')
           .eq('group_id', conversationId)
           .eq('key_version', keyVersion)
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .maybeSingle();
 
         if (!memberKeyRecord) {
@@ -144,10 +179,10 @@ export function useMessages({
         }
 
         // Fetch creator's public key who encrypted this group key
-        const creatorId = memberKeyRecord.created_by || user.id;
-        let creatorPublicJwk = keyPair.publicKeyJwk;
+        const creatorId = memberKeyRecord.created_by || currentUser.id;
+        let creatorPublicJwk = currentKeyPair.publicKeyJwk;
 
-        if (creatorId !== user.id) {
+        if (creatorId !== currentUser.id) {
           const { data: creatorKeyRecord } = await supabase
             .from('user_keys')
             .select('public_key')
@@ -162,12 +197,13 @@ export function useMessages({
         const groupKey = await unwrapGroupKey(
           memberKeyRecord.encrypted_key,
           memberKeyRecord.iv,
-          keyPair.privateKeyJwk,
+          currentKeyPair.privateKeyJwk,
           creatorPublicJwk,
           conversationId,
           keyVersion
         );
 
+        keysCacheRef.current.set(cacheKey, groupKey);
         activeKeyRef.current = groupKey;
         keyErrorRef.current = null;
         return groupKey;
@@ -177,7 +213,7 @@ export function useMessages({
       keyErrorRef.current = 'Failed to derive cryptographic shared secret.';
       return null;
     }
-  }, [user, keyPair, conversationId, conversationType, otherParticipant, keyVersion, supabase]);
+  }, [user?.id, !!keyPair, conversationId, conversationType, otherParticipantId, keyVersion, supabase]);
 
   // Decrypt a raw database message record
   const decryptSingleMessage = useCallback(
@@ -227,7 +263,14 @@ export function useMessages({
     if (!conversationId || !user) {
       setMessages([]);
       setLoading(false);
+      prevConversationIdRef.current = null;
       return;
+    }
+
+    // Only clear messages if switching to a DIFFERENT conversation
+    if (prevConversationIdRef.current !== conversationId) {
+      setMessages([]);
+      prevConversationIdRef.current = conversationId;
     }
 
     setLoading(true);
@@ -278,7 +321,7 @@ export function useMessages({
     } finally {
       setLoading(false);
     }
-  }, [conversationId, user, resolveActiveKey, supabase, decryptSingleMessage]);
+  }, [conversationId, user?.id, resolveActiveKey, supabase, decryptSingleMessage]);
 
   useEffect(() => {
     loadMessages();
@@ -372,7 +415,7 @@ export function useMessages({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [conversationId, user, supabase, decryptSingleMessage, resolveActiveKey]);
+  }, [conversationId, user?.id, supabase, decryptSingleMessage, resolveActiveKey]);
 
   // Send message with client-side E2EE encryption
   const sendMessage = useCallback(
@@ -455,7 +498,7 @@ export function useMessages({
         setSending(false);
       }
     },
-    [conversationId, user, keyVersion, conversationType, resolveActiveKey, supabase]
+    [conversationId, user?.id, keyVersion, conversationType, resolveActiveKey, supabase]
   );
 
   return {
