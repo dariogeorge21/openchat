@@ -86,6 +86,7 @@ body {
 }
 
 /* WhatsApp-Web-inspired Chat Wallpapers */
+.chat-wallpaper,
 .chat-wallpaper-light {
   background-color: #efeae2;
   background-image: 
@@ -94,11 +95,15 @@ body {
   background-size: 24px 24px, 48px 48px;
 }
 
+:where(.dark, .dark *) .chat-wallpaper,
+:where(.dark, .dark *) .chat-wallpaper-light,
+.dark .chat-wallpaper,
+.dark .chat-wallpaper-light,
 .chat-wallpaper-dark {
-  background-color: #0b141a;
+  background-color: #0b141a !important;
   background-image: 
-    radial-gradient(rgba(233, 237, 239, 0.03) 1px, transparent 1px),
-    linear-gradient(to right, rgba(233, 237, 239, 0.015) 1px, transparent 1px);
+    radial-gradient(rgba(233, 237, 239, 0.035) 1px, transparent 1px),
+    linear-gradient(to right, rgba(233, 237, 239, 0.015) 1px, transparent 1px) !important;
   background-size: 24px 24px, 48px 48px;
 }
 

@@ -75,11 +75,11 @@ export function MessageList({
   let lastDate = '';
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 space-y-3 chat-wallpaper-light dark:chat-wallpaper-dark">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 space-y-3 chat-wallpaper bg-[#efeae2] dark:bg-[#0b141a]">
       {/* Security Banner */}
       <div className="flex justify-center mb-4">
-        <div className="max-w-md bg-[#ffeecd]/85 dark:bg-[#182229]/90 border border-[#e1d5bc] dark:border-[#2a3942] rounded-xl px-3.5 py-2 text-center shadow-xs">
-          <p className="text-[11px] text-[#54656f] dark:text-[#8696a0] leading-relaxed flex items-center justify-center gap-1.5">
+        <div className="max-w-md bg-[#ffeecd]/90 dark:bg-[#182229] border border-[#e1d5bc] dark:border-[#222d34] rounded-xl px-3.5 py-2 text-center shadow-xs">
+          <p className="text-[11px] text-[#54656f] dark:text-[#d1d7db] leading-relaxed flex items-center justify-center gap-1.5">
             <Lock className="w-3.5 h-3.5 text-[#00A884] shrink-0" />
             <span>
               Messages are end-to-end encrypted. No one outside this chat, not even OpenChat, can read them.
@@ -89,7 +89,7 @@ export function MessageList({
       </div>
 
       {!loading && messages.length === 0 && (
-        <div className="py-12 text-center text-xs text-[#8696a0]">
+        <div className="py-12 text-center text-xs text-[#667781] dark:text-[#8696a0]">
           No messages here yet. Send a message to start encrypted conversation.
         </div>
       )}
@@ -106,7 +106,7 @@ export function MessageList({
           <React.Fragment key={msg.id}>
             {showDateSeparator && (
               <div className="flex justify-center my-2">
-                <span className="px-3 py-1 rounded-lg bg-white/80 dark:bg-[#182229]/90 border border-[#e9edef] dark:border-[#2a3942] text-[11px] font-medium text-[#54656f] dark:text-[#8696a0] shadow-xs">
+                <span className="px-3 py-1 rounded-lg bg-white/90 dark:bg-[#182229] border border-[#e9edef] dark:border-[#222d34] text-[11px] font-medium text-[#54656f] dark:text-[#aebac1] shadow-xs">
                   {msgDate}
                 </span>
               </div>
