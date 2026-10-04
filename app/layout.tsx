@@ -18,9 +18,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OpenChat — Frictionless Multi-User Realtime Chat",
-  description:
-    "Connect instantly and chat openly with multiple users worldwide. One-click GoogleAuth, zero friction, and high-aesthetic geometric minimalism.",
+  title: "OpenChat — Realtime Chat",
+  description: "A simple, fast chat app for connecting with people worldwide.",
   icons: {
     icon: "/favicon.ico",
   },
