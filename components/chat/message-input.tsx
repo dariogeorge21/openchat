@@ -2,6 +2,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Smile, Paperclip } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useTheme } from 'next-themes';
+import type { EmojiClickData } from 'emoji-picker-react';
+import { Theme } from 'emoji-picker-react';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[340px] h-[400px] flex items-center justify-center bg-white dark:bg-[#202c33] text-sm text-[#8696a0]">
+      Loading emojis...
+    </div>
+  ),
+});
 
 interface MessageInputProps {
   onSendMessage: (text: string) => Promise<void>;
@@ -17,12 +30,42 @@ export function MessageInput({
   const [text, setText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const emojis = ['😀', '😂', '😍', '🔥', '👍', '🙏', '🎉', '❤️', '😎', '🚀', '🔒', '✨'];
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Close emoji picker on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node) &&
+        emojiButtonRef.current &&
+        !emojiButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setShowEmojiPicker(false);
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [showEmojiPicker]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -48,27 +91,31 @@ export function MessageInput({
 
   return (
     <div className="relative border-t border-[#e9edef] dark:border-[#222d34] bg-[#f0f2f5] dark:bg-[#202c33] px-4 py-2.5">
-      {/* Quick Emoji Bar Popover */}
+      {/* Full Emoji Picker Popover */}
       {showEmojiPicker && (
-        <div className="absolute bottom-16 left-4 bg-white dark:bg-[#202c33] border border-[#e9edef] dark:border-[#2a3942] rounded-2xl p-2.5 shadow-xl flex items-center gap-1.5 z-20 animate-in fade-in-50 zoom-in-95">
-          {emojis.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => handleInsertEmoji(emoji)}
-              className="w-8 h-8 rounded-lg hover:bg-[#f0f2f5] dark:hover:bg-[#111b21] flex items-center justify-center text-lg transition-transform hover:scale-115 cursor-pointer"
-            >
-              {emoji}
-            </button>
-          ))}
+        <div
+          ref={pickerRef}
+          className="absolute bottom-16 left-4 z-50 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 border border-[#e9edef] dark:border-[#2a3942]"
+        >
+          <EmojiPicker
+            onEmojiClick={(emojiData: EmojiClickData) => {
+              handleInsertEmoji(emojiData.emoji);
+            }}
+            theme={resolvedTheme === 'dark' ? Theme.DARK : Theme.LIGHT}
+            lazyLoadEmojis={true}
+            searchPlaceHolder="Search emojis..."
+            width={340}
+            height={400}
+          />
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-7xl mx-auto">
         {/* Emoji Button */}
         <button
+          ref={emojiButtonRef}
           type="button"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          onClick={() => setShowEmojiPicker((prev) => !prev)}
           className={`p-2 rounded-full transition-colors cursor-pointer ${
             showEmojiPicker
               ? 'text-[#00A884] bg-white dark:bg-[#111b21]'
