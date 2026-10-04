@@ -259,7 +259,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
             size="sm"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-lg text-xs"
+            className="rounded-lg text-xs text-black dark:text-white border-[#e9edef] dark:border-[#2a3942] hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
           >
             Close
           </Button>
