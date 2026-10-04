@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ShieldCheck, Lock, Key, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { OpenChatSplash } from '@/components/brand/open-chat-logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,14 +42,7 @@ export default function LoginPage() {
   };
 
   if (loading || user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBF9FA] dark:bg-[#111B21]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#66CCF2]" />
-          <p className="text-xs text-[#737373] dark:text-[#8696A0]">Securing session...</p>
-        </div>
-      </div>
-    );
+    return <OpenChatSplash />;
   }
 
   return (

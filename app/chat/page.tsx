@@ -12,7 +12,7 @@ import { NewChatModal } from '@/components/chat/new-chat-modal';
 import { NewGroupModal } from '@/components/chat/new-group-modal';
 import { GroupDetailsModal } from '@/components/chat/group-details-modal';
 import { ProfileModal } from '@/components/chat/profile-modal';
-import { Loader2 } from 'lucide-react';
+import { OpenChatSplash } from '@/components/brand/open-chat-logo';
 import { Profile } from '@/types/database';
 
 export default function ChatDashboardPage() {
@@ -41,6 +41,15 @@ export default function ChatDashboardPage() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [groupDetailsOpen, setGroupDetailsOpen] = useState(false);
   const [chatClearKey, setChatClearKey] = useState(0);
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Display OpenChat logo splash for 2 seconds with minimal modern animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleClearChat = async (convId: string) => {
     await clearChat(convId);
@@ -51,20 +60,13 @@ export default function ChatDashboardPage() {
 
   // Authentication guard
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !showSplash && !user) {
       router.replace('/login');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, showSplash, router]);
 
-  if (authLoading || (!user && typeof window !== 'undefined')) {
-    return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#f0f2f5] dark:bg-[#111b21] gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00A884]" />
-        <p className="text-xs text-[#667781] dark:text-[#8696a0]">
-          Securing cryptographic session...
-        </p>
-      </div>
-    );
+  if (showSplash || authLoading || (!user && typeof window !== 'undefined')) {
+    return <OpenChatSplash />;
   }
 
   const handleSelectUserForChat = async (targetProfile: Profile) => {
